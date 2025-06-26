@@ -1,0 +1,11 @@
+# ── Supabase ─────────────────────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL=https://xyzabcd.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…
+
+# ── Firebase ─────────────────────────────────────────────────
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy…
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=reviewpilot-96c62.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=reviewpilot-96c62
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=reviewpilot-96c62.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=636346661470
+NEXT_PUBLIC_FIREBASE_APP_ID=1:636346661470:web:ef59a5e3d0e7f1cc1892cf

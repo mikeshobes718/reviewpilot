@@ -1,3 +1,4 @@
+// src/app/page.tsx
 "use client";
 
 import { FormEvent, useState, useEffect } from "react";
@@ -100,7 +101,15 @@ export default function HomePage() {
               key={r.id}
               className="flex justify-between items-center border p-3 rounded"
             >
-              <span>{r.business_name}</span>
+              <div>
+                <p className="font-semibold">{r.business_name}</p>
+                {/* Display the created_at timestamp */}
+                {r.created_at?.seconds && (
+                  <p className="text-xs text-gray-500">
+                    {new Date(r.created_at.seconds * 1000).toLocaleString()}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => deleteRequest(r.id)}
                 className="text-red-500 hover:underline text-sm"

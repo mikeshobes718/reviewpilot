@@ -1,20 +1,21 @@
 # ReviewPilot
 
-A Next.js + Firebase app to let business owners send review requests.
-
-## Getting Started
-
-1. `git clone https://github.com/your-username/reviewpilot.git`
-2. `cd reviewpilot && npm install`
-3. Copy `.env.local.example` → `.env.local` and fill in your Firebase values.
-4. `npm run dev`
-
-## Deployment
-
-Live demo: https://reviewpilot-one.vercel.app
+A simple Next.js + Firebase Starter that lets users sign in, create and list “review requests” in Firestore.
 
 ## Features
 
-- Email/password auth via Firebase  
-- Firestore `review_requests` collection  
-- Real-time list of your requests  
+- Email/Password auth (Firebase Auth)  
+- Firestore-backed “review_requests” collection  
+- Create, list & delete your own requests  
+- Strict security rules so each user only sees their own data
+
+## Getting Started
+
+1. Copy `.env.local.example` to `.env.local` and fill in your Firebase config.  
+2. Install & run locally:
+   \`\`\`bash
+   npm install
+   npm run dev
+   \`\`\`
+3. Sign in with an existing Firebase Auth user (or create one in the console).  
+4. Start creating review requests!

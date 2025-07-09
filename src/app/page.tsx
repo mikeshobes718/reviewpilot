@@ -1,127 +1,164 @@
-// src/app/page.tsx
-"use client";
+'use client';
 
-import { FormEvent, useState, useEffect } from "react";
-import AuthForm from "@/components/AuthForm";
-import { db } from "@/lib/firebase";
+import { useState, useEffect, FormEvent } from 'react';
+import { auth, db } from '../lib/firebase'; // Make sure you export 'db' from firebase.ts
+import { onAuthStateChanged, User } from 'firebase/auth';
 import {
   collection,
   query,
   where,
   onSnapshot,
   addDoc,
+  serverTimestamp,
   deleteDoc,
   doc,
   Timestamp,
-} from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+} from 'firebase/firestore';
 
-export default function HomePage() {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [businessName, setBusinessName] = useState("");
+import AuthForm from '../components/AuthForm';
+import CheckoutForm from '../components/CheckoutForm';
 
-  // track logged-in user
+// Define the structure of a Review Request
+interface ReviewRequest {
+  id: string;
+  business_name: string;
+  owner_id: string;
+  created_at: Timestamp;
+}
+
+export default function Home() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [requests, setRequests] = useState<ReviewRequest[]>([]);
+  const [newBusinessName, setNewBusinessName] = useState('');
+  
+  // NEW: State to track which payment form is open
+  const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
+
+  // Effect to listen for auth changes
   useEffect(() => {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      if (user) setUserId(user.uid);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
     });
+    return () => unsubscribe();
   }, []);
 
-  // listen for this user’s review_requests
+  // Effect to fetch review requests from Firestore when user logs in
   useEffect(() => {
-    if (!userId) return;
-    const q = query(
-      collection(db, "review_requests"),
-      where("owner_id", "==", userId)
-    );
-    return onSnapshot(q, (snap) =>
-      setReviews(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-    );
-  }, [userId]);
+    if (user) {
+      const q = query(
+        collection(db, 'review_requests'),
+        where('owner_id', '==', user.uid)
+      );
 
-  // create a new request
-  const createRequest = async (e: FormEvent) => {
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const requestsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as ReviewRequest[];
+        setRequests(requestsData);
+      });
+
+      return () => unsubscribe();
+    }
+  }, [user]);
+
+  const handleCreateRequest = async (e: FormEvent) => {
     e.preventDefault();
-    if (!userId || !businessName.trim()) return;
-    await addDoc(collection(db, "review_requests"), {
-      business_name: businessName.trim(),
-      customer_name: "Alice",
-      customer_phone: "+1-555-1234",
-      customer_email: "alice@example.com",
-      owner_id: userId,
-      created_at: Timestamp.now(),
-    });
-    setBusinessName("");
+    if (user && newBusinessName.trim() !== '') {
+      await addDoc(collection(db, 'review_requests'), {
+        business_name: newBusinessName.trim(),
+        owner_id: user.uid,
+        created_at: serverTimestamp(),
+      });
+      setNewBusinessName('');
+    }
   };
 
-  // delete a request
-  const deleteRequest = async (id: string) => {
-    await deleteDoc(doc(db, "review_requests", id));
+  const handleDeleteRequest = async (id: string) => {
+    await deleteDoc(doc(db, 'review_requests', id));
   };
 
-  // if not signed in, show the AuthForm
-  if (!userId) {
-    return (
-      <main className="p-6 max-w-md mx-auto">
-        <AuthForm />
-      </main>
-    );
+  if (loading) {
+    return <p className="text-center mt-10">Loading...</p>;
   }
 
   return (
-    <main className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Your Review Requests</h1>
-
-      <form onSubmit={createRequest} className="flex gap-2 mb-6">
-        <input
-          className="flex-1 px-3 py-2 border rounded"
-          value={businessName}
-          onChange={(e) => setBusinessName(e.target.value)}
-          placeholder="Business name"
-        />
-        <button
-          type="submit"
-          disabled={!businessName.trim()}
-          className={`px-4 py-2 rounded ${
-            businessName.trim()
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-300 text-gray-600 cursor-not-allowed"
-          }`}
-        >
-          Create
-        </button>
-      </form>
-
-      {reviews.length ? (
-        <ul className="space-y-2">
-          {reviews.map((r) => (
-            <li
-              key={r.id}
-              className="flex justify-between items-center border p-3 rounded"
-            >
-              <div>
-                <p className="font-semibold">{r.business_name}</p>
-                {/* Display the created_at timestamp */}
-                {r.created_at?.seconds && (
-                  <p className="text-xs text-gray-500">
-                    {new Date(r.created_at.seconds * 1000).toLocaleString()}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={() => deleteRequest(r.id)}
-                className="text-red-500 hover:underline text-sm"
-              >
-                Delete
+    <main className="min-h-screen p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto">
+        {!user ? (
+          <AuthForm />
+        ) : (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">ReviewPilot</h1>
+              <button onClick={() => auth.signOut()} className="text-sm text-gray-600 hover:text-blue-600">
+                Sign Out
               </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-500">No requests yet.</p>
-      )}
+            </div>
+
+            {/* Create New Request Form */}
+            <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+              <h2 className="text-xl font-semibold mb-4">Create a New Review Request</h2>
+              <form onSubmit={handleCreateRequest} className="flex gap-4">
+                <input
+                  type="text"
+                  value={newBusinessName}
+                  onChange={(e) => setNewBusinessName(e.target.value)}
+                  placeholder="Enter Business Name (e.g., 'Acme Coffee Shop')"
+                  className="flex-grow p-3 border rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+                <button type="submit" className="bg-blue-600 text-white font-bold py-3 px-6 rounded-md hover:bg-blue-700 transition">
+                  Create
+                </button>
+              </form>
+            </div>
+
+            {/* List of Review Requests */}
+            <div className="space-y-4">
+              {requests.map((req) => (
+                <div key={req.id} className="bg-white p-6 rounded-lg shadow-md">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-semibold">{req.business_name}</h3>
+                      <p className="text-sm text-gray-500">
+                        Created: {req.created_at?.toDate().toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                       <button 
+                        onClick={() => setActiveRequestId(activeRequestId === req.id ? null : req.id)}
+                        className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition text-sm font-semibold"
+                      >
+                        {activeRequestId === req.id ? 'Close' : 'Take Payment'}
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteRequest(req.id)}
+                        className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* The Checkout form will appear here when active */}
+                  {activeRequestId === req.id && (
+                    <div className="mt-6 border-t pt-6">
+                      <CheckoutForm 
+                        amount={500} // Example amount: $5.00
+                        requestId={req.id}
+                        businessName={req.business_name} 
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </main>
   );
 }
+

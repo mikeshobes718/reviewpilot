@@ -11,6 +11,7 @@
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.4.0",
     "@types/micro": "^7.3.7",
+    "dotenv": "^17.2.0",
     "firebase": "^10.14.1",
     "firebase-admin": "^13.4.0",
     "micro": "^10.0.1",

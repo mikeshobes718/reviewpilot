@@ -8,3 +8,4 @@ node_modules_old/
 # Environment variables
 .env.local
 
+.vercel

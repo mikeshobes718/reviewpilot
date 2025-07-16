@@ -20,7 +20,8 @@ if (!getApps().length) {
 const db = getFirestore();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  // This is the fix for the Vercel build error.
+  apiVersion: '2025-06-30.basil',
 });
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -46,11 +47,6 @@ async function getGoogleReviewUrl(businessName: string): Promise<string | null> 
   try {
     const response = await fetch(searchUrl);
     const data = await response.json();
-
-    // --- NEW DEBUGGING LOG ---
-    // Let's see exactly what Google is sending back to us.
-    console.log("GOOGLE PLACES API RESPONSE:", JSON.stringify(data, null, 2));
-
     if (data.results && data.results.length > 0) {
       const placeId = data.results[0].place_id;
       return `https://search.google.com/local/writereview?placeid=${placeId}`;

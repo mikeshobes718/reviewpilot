@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
-import { auth, db } from '../lib/firebase'; // Make sure you export 'db' from firebase.ts
+import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import Link from 'next/link'; // Import the Link component
 import {
   collection,
   query,
@@ -18,7 +19,6 @@ import {
 import AuthForm from '../components/AuthForm';
 import CheckoutForm from '../components/CheckoutForm';
 
-// Define the structure of a Review Request
 interface ReviewRequest {
   id: string;
   business_name: string;
@@ -31,38 +31,45 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<ReviewRequest[]>([]);
   const [newBusinessName, setNewBusinessName] = useState('');
-  
-  // NEW: State to track which payment form is open
   const [activeRequestId, setActiveRequestId] = useState<string | null>(null);
 
-  // Effect to listen for auth changes
+  // --- NEW: State to track if the current user is an admin ---
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
+
+      if (currentUser) {
+        // --- NEW: Check for admin claim on the main page ---
+        const tokenResult = await currentUser.getIdTokenResult(true);
+        if (tokenResult.claims.admin === true) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+
+        // Fetch user's review requests (existing logic)
+        const q = query(
+          collection(db, 'review_requests'),
+          where('owner_id', '==', currentUser.uid)
+        );
+        const unsubRequests = onSnapshot(q, (querySnapshot) => {
+          const requestsData = querySnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as ReviewRequest[];
+          setRequests(requestsData);
+        });
+        return () => unsubRequests();
+      } else {
+        setIsAdmin(false);
+      }
     });
+
     return () => unsubscribe();
   }, []);
-
-  // Effect to fetch review requests from Firestore when user logs in
-  useEffect(() => {
-    if (user) {
-      const q = query(
-        collection(db, 'review_requests'),
-        where('owner_id', '==', user.uid)
-      );
-
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const requestsData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as ReviewRequest[];
-        setRequests(requestsData);
-      });
-
-      return () => unsubscribe();
-    }
-  }, [user]);
 
   const handleCreateRequest = async (e: FormEvent) => {
     e.preventDefault();
@@ -81,7 +88,7 @@ export default function Home() {
   };
 
   if (loading) {
-    return <p className="text-center mt-10">Loading...</p>;
+    return <p className="text-center mt-10 animate-pulse">Loading Dashboard...</p>;
   }
 
   return (
@@ -93,12 +100,22 @@ export default function Home() {
           <div>
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">ReviewPilot</h1>
-              <button onClick={() => auth.signOut()} className="text-sm text-gray-600 hover:text-blue-600">
-                Sign Out
-              </button>
+              <div className="flex items-center gap-4">
+                {/* --- NEW: Conditional Admin Button --- */}
+                {isAdmin && (
+                  <Link href="/admin">
+                    <button className="bg-blue-600 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-700 transition text-sm">
+                      Admin
+                    </button>
+                  </Link>
+                )}
+                <button onClick={() => auth.signOut()} className="text-sm text-gray-600 hover:text-blue-600">
+                  Sign Out
+                </button>
+              </div>
             </div>
 
-            {/* Create New Request Form */}
+            {/* Rest of the component remains the same */}
             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
               <h2 className="text-xl font-semibold mb-4">Create a New Review Request</h2>
               <form onSubmit={handleCreateRequest} className="flex gap-4">
@@ -115,7 +132,6 @@ export default function Home() {
               </form>
             </div>
 
-            {/* List of Review Requests */}
             <div className="space-y-4">
               {requests.map((req) => (
                 <div key={req.id} className="bg-white p-6 rounded-lg shadow-md">
@@ -142,11 +158,10 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {/* The Checkout form will appear here when active */}
                   {activeRequestId === req.id && (
                     <div className="mt-6 border-t pt-6">
                       <CheckoutForm 
-                        amount={500} // Example amount: $5.00
+                        amount={500}
                         requestId={req.id}
                         businessName={req.business_name} 
                       />

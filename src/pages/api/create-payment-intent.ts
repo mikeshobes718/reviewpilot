@@ -19,7 +19,8 @@ const db = getFirestore();
 
 // --- Stripe Initialization ---
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
+  // THE FIX IS HERE: Update to the version Vercel expects.
+  apiVersion: '2025-06-30.basil',
 });
 
 export default async function handler(
@@ -31,14 +32,9 @@ export default async function handler(
     return res.status(405).end('Method Not Allowed');
   }
 
-  // --- DEBUGGING STEP ---
-  // Let's log the entire request body to see what we're actually receiving.
-  console.log("RECEIVED BODY ON SERVER:", req.body);
-
   const { amount, requestId, businessName } = req.body;
 
   if (!amount || !requestId || !businessName) {
-    console.error("VALIDATION FAILED:", { amount, requestId, businessName });
     return res.status(400).json({ error: 'Missing amount, requestId, or businessName' });
   }
 

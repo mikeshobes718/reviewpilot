@@ -1,16 +1,8 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
-// Dynamic imports to prevent Firebase initialization during build
-let auth: any = null;
-
-// Only import Firebase on the client side
-if (typeof window !== 'undefined') {
-  import('../../lib/firebase').then((firebase) => {
-    auth = firebase.auth;
-  });
-}
+import { auth } from '../../lib/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -44,6 +36,23 @@ export default function AuthPage() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [passwordResetEmail, setPasswordResetEmail] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+
+  useEffect(() => {
+    // Check if Firebase auth is ready
+    if (auth) {
+      setIsFirebaseReady(true);
+    } else {
+      // Wait a bit for Firebase to initialize
+      const timer = setTimeout(() => {
+        if (auth) {
+          setIsFirebaseReady(true);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -181,7 +190,7 @@ export default function AuthPage() {
     }
   };
 
-  if (!auth) {
+  if (!isFirebaseReady) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4">
         <div className="text-center">

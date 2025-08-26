@@ -113,6 +113,11 @@ export default function SubscribePage() {
     }
   };
 
+  const handlePlanSelection = (planId: 'starter' | 'pro') => {
+    setSelectedPlan(planId);
+    console.log('Plan selected:', planId);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
       {/* Navigation */}
@@ -170,12 +175,13 @@ export default function SubscribePage() {
                 {plans.map((plan) => (
                   <button
                     key={plan.id}
-                    onClick={() => setSelectedPlan(plan.id as 'starter' | 'pro')}
+                    onClick={() => handlePlanSelection(plan.id as 'starter' | 'pro')}
                     className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform ${
                       selectedPlan === plan.id
                         ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg scale-105'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
+                    data-testid={`plan-${plan.id}-button`}
                   >
                     {plan.name}
                   </button>
@@ -237,7 +243,11 @@ export default function SubscribePage() {
 
                     <div className="mt-auto">
                       {plan.id === 'starter' ? (
-                        <Link href="/auth" className="w-full group inline-flex items-center justify-center bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-medium focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2">
+                        <Link 
+                          href="/auth" 
+                          className="w-full group inline-flex items-center justify-center bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-medium focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2"
+                          data-testid="starter-get-started-button"
+                        >
                           Get Started Free
                           <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -246,6 +256,7 @@ export default function SubscribePage() {
                           onClick={handleSubscribe}
                           disabled={loading || !user}
                           className="btn-primary w-full group inline-flex items-center justify-center"
+                          data-testid="pro-subscribe-button"
                         >
                           {loading ? (
                             <>
@@ -404,7 +415,11 @@ export default function SubscribePage() {
               and building stronger customer relationships.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/auth" className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large">
+              <Link 
+                href="/auth" 
+                className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large"
+                data-testid="cta-start-free-trial"
+              >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2 inline" />
               </Link>
@@ -454,7 +469,7 @@ export default function SubscribePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                          <p>&copy; 2025 Reviews & Marketing. All rights reserved.</p>
+            <p>&copy; 2025 Reviews & Marketing. All rights reserved.</p>
           </div>
         </div>
       </footer>

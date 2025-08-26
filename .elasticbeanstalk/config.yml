@@ -1,10 +1,10 @@
 branch-defaults:
   main:
-    environment: reviews-marketing-with-profile
+    environment: reviews-marketing-fresh-ULTIMATE
     group_suffix: null
 
 deploy:
-  artifact: build/app-20250826-105721.zip
+  artifact: null
 
 global:
   application_name: reviews-marketing-fresh

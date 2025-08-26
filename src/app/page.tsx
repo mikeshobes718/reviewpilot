@@ -213,13 +213,13 @@ export default function Home() {
                 We automatically request reviews from satisfied customers, making it effortless to build your online reputation.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/subscribe" className="btn-primary text-lg px-8 py-4">
+                <Link href="/subscribe" className="btn-primary text-lg px-8 py-4 inline-flex items-center">
                   Start Free Trial
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
                 <button 
                   onClick={() => window.open('https://youtu.be/1KjxVwnzMYw?si=7qOVbMQR6ad9DRaG', '_blank')}
-                  className="btn-secondary text-lg px-8 py-4 group"
+                  className="btn-secondary text-lg px-8 py-4 group inline-flex items-center"
                 >
                   <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                   Watch Demo
@@ -612,9 +612,9 @@ export default function Home() {
               and building stronger customer relationships.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/subscribe" className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large">
+              <Link href="/subscribe" className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large inline-flex items-center">
                 Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2 inline" />
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
               <Link href="/auth" className="text-white border border-white/30 hover:bg-white/10 font-semibold py-4 px-8 rounded-xl transition-all duration-200">
                 Sign In

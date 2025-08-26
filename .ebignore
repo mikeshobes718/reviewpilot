@@ -1,4 +1,4 @@
-# Don't ignore the .next directory - we need it for production
+# Include the built application
 !.next/
 !.next/static/
 !.next/server/

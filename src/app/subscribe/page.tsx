@@ -233,7 +233,7 @@ export default function SubscribePage() {
 
                     <div className="mt-auto">
                       {plan.id === 'starter' ? (
-                        <Link href="/auth" className="btn-secondary w-full group">
+                        <Link href="/auth" className="w-full group inline-flex items-center justify-center bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-medium focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2">
                           Get Started Free
                           <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -250,7 +250,7 @@ export default function SubscribePage() {
                             </>
                           ) : (
                             <>
-                              {user ? 'Start Pro Trial' : 'Sign In to Subscribe'}
+                              {user ? 'Subscribe to Pro' : 'Sign In to Subscribe'}
                               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                             </>
                           )}

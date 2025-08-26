@@ -1,0 +1,22 @@
+branch-defaults:
+  main:
+    environment: reviews-marketing-with-profile
+    group_suffix: null
+
+deploy:
+  artifact: build/app-20250826-105721.zip
+
+global:
+  application_name: reviews-marketing-fresh
+  branch: null
+  default_ec2_keyname: null
+  default_platform: Node.js 22 running on 64bit Amazon Linux 2023
+  default_region: us-east-1
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: null
+  repository: null
+  sc: null
+  workspace_type: Application

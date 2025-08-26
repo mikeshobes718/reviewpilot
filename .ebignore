@@ -1,55 +1,15 @@
-# Include everything needed for the app to run
-!.next/
-!.next/static/
-!.next/server/
-!package.json
-!package-lock.json
-
-# Ignore development files
+# Only exclude what's absolutely not needed
 .git/
 .env.local
 .env.development
 .env.test
 .env.production
-
-# Ignore build artifacts that aren't needed
-.next/cache/
-.next/types/
-
-# Ignore test files
-__tests__/
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
-
-# Ignore development configs
-.eslintrc*
-.prettierrc*
-jest.config.js
-jest.setup.js
-
-# Ignore deployment scripts
-deploy-*.sh
-aws-*.sh
-
-# Ignore coverage and other build artifacts
 coverage/
 review-saas/
 rm-fresh/
 tests/
 tests-examples/
-
-# Ignore OS files
-.DS_Store
-Thumbs.db
-
-# Ignore logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Ignore temporary files
-*.tmp
-*.temp
+.DS_Store
+deploy-*.sh
+aws-*.sh

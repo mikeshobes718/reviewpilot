@@ -15,6 +15,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   AuthError,
 } from 'firebase/auth';
 import { 
@@ -58,15 +59,36 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        setSuccessMessage('Account created successfully! Welcome to Reviews & Marketing.');
-        setIsRedirecting(true);
-        // Redirect to dashboard after successful signup
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Send email verification
+        await sendEmailVerification(user);
+        
+        // Send welcome email
+        const { EmailService } = await import('../../lib/emailService');
+        const name = email.split('@')[0]; // Extract name from email
+        await EmailService.sendWelcomeEmail(email, name);
+        
+        setSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
+        setIsRedirecting(false);
+        
+        // Don't redirect immediately - user needs to verify email first
         setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 2000);
+          setIsSignUp(false);
+          setSuccessMessage(null);
+        }, 5000);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        if (!user.emailVerified) {
+          setError('Please verify your email address before signing in. Check your inbox for a verification link.');
+          // Send verification email again if needed
+          await sendEmailVerification(user);
+          return;
+        }
+        
         setSuccessMessage('Welcome back! Signing you in...');
         setIsRedirecting(true);
         // Redirect to dashboard after successful signin
@@ -126,7 +148,16 @@ export default function AuthPage() {
     setSuccessMessage(null);
 
     try {
+      // First send Firebase password reset
       await sendPasswordResetEmail(auth, passwordResetEmail);
+      
+      // Then send our custom branded email
+      const { EmailService } = await import('../../lib/emailService');
+      const name = passwordResetEmail.split('@')[0]; // Extract name from email
+      const resetLink = `https://reviewsandmarketing.com/auth?reset=true&email=${encodeURIComponent(passwordResetEmail)}`;
+      
+      await EmailService.sendPasswordResetEmail(passwordResetEmail, resetLink, name);
+      
       setSuccessMessage('Password reset email sent! Check your inbox for instructions.');
       setPasswordResetEmail('');
       setTimeout(() => {
@@ -402,6 +433,32 @@ export default function AuthPage() {
                   {isSignUp ? 'Sign In' : 'Sign Up'}
                 </button>
               </p>
+              
+              {/* Resend Verification Email */}
+              {!isSignUp && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-500 mb-2">
+                    Didn't receive verification email?
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (auth.currentUser && !auth.currentUser.emailVerified) {
+                        try {
+                          await sendEmailVerification(auth.currentUser);
+                          setSuccessMessage('Verification email sent! Please check your inbox.');
+                          setTimeout(() => setSuccessMessage(null), 3000);
+                        } catch (error) {
+                          setError('Failed to send verification email. Please try again.');
+                        }
+                      }
+                    }}
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                    disabled={isSubmitting || !auth.currentUser || auth.currentUser?.emailVerified}
+                  >
+                    Resend Verification Email
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Divider */}

@@ -1,7 +1,7 @@
-# Include the built application
-!.next/
-!.next/static/
-!.next/server/
+# Exclude built files - we'll build on the instance
+.next/
+.next/static/
+.next/server/
 
 # Ignore development files
 node_modules/

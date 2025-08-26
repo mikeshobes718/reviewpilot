@@ -33,14 +33,14 @@ echo "✅ Pushed to GitHub successfully!"
 
 echo "🚀 Deploying from GitHub to Elastic Beanstalk..."
 # Deploy directly from GitHub using eb deploy
-eb deploy --environment $ENV_NAME --region $REGION --version $VERSION_LABEL
+eb deploy $ENV_NAME --region $REGION
 
 if [ $? -eq 0 ]; then
     echo "✅ GITHUB deployment initiated successfully!"
     echo "🌐 Environment: $ENV_NAME"
     echo "📦 Version: $VERSION_LABEL"
     echo "🔗 GitHub: https://github.com/mikeshobes718/reviewpilot"
-    echo "📊 Check status with: eb status --environment $ENV_NAME"
+    echo "📊 Check status with: eb status"
 else
     echo "❌ Failed to deploy!"
     exit 1

@@ -1,32 +1,50 @@
 {
-  "name": "my-app",
+  "name": "review-pilot",
   "version": "0.1.0",
   "private": true,
+  "engines": { "node": "22.x" },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start -p $PORT -H 0.0.0.0",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "eb:build": "npm run build && npm run start",
+    "eb:deploy": "eb deploy"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.4.0",
     "@types/micro": "^7.3.7",
+    "clsx": "^2.0.0",
     "dotenv": "^17.2.0",
     "firebase": "^10.14.1",
     "firebase-admin": "^13.4.0",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.263.1",
     "micro": "^10.0.1",
     "next": "15.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-firebase-hooks": "^5.1.1",
     "resend": "^4.6.0",
-    "stripe": "^18.3.0"
+    "stripe": "^18.3.0",
+    "tailwind-merge": "^2.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.14",
     "@types/react": "19.1.8",
     "autoprefixer": "^10.4.21",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
     "postcss": "^8.5.6",
+    "puppeteer": "^24.17.0",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.0.4"
   }

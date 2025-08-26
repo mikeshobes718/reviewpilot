@@ -6,12 +6,13 @@ import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyAbvy5lC1yczSa8HMmicpEYFFZz0tbHZ5s",
+  authDomain: "reviewpilot2.firebaseapp.com",
+  projectId: "reviewpilot2",
+  storageBucket: "reviewpilot2.firebasestorage.app",
+  messagingSenderId: "577051575061",
+  appId: "1:577051575061:web:16dfd593d88bbdc5351f1c",
+  measurementId: "G-JZ78N8KWSY"
 };
 
 // Initialize Firebase

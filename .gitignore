@@ -1,17 +1,50 @@
 # Dependencies
 node_modules/
-node_modules_old/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Next.js build output
+# Next.js
 .next/
+out/
+build/
 
 # Environment variables
+.env
 .env.local
+.env.development
+.env.test
+.env.production
+env.production
+env.production.txt
 
-.vercel
+# AWS and deployment files
+aws-deployment/
+*.zip
+.certificate-arn
+.cloudfront-domain
+.cloudfront-id
+.eb-url
+.hosted-zone-id
+.nameservers
+.s3-bucket-name
 
-# Playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+# Testing
+coverage/
+__tests__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+ziCrmhGl

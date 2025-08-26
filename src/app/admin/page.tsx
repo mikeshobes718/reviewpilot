@@ -2,25 +2,136 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { auth } from '../../lib/firebase';
+import { motion } from 'framer-motion';
 import { onAuthStateChanged, User } from 'firebase/auth';
+import {
+  collection,
+  query,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+  where,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
+import { 
+  Star, 
+  Users, 
+  BarChart3, 
+  Settings, 
+  LogOut,
+  Shield,
+  Eye,
+  Edit3,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Clock,
+  TrendingUp,
+  DollarSign,
+  Activity,
+  Database,
+  Server
+} from 'lucide-react';
 import Link from 'next/link';
 
-interface AppUser {
+interface UserData {
   uid: string;
-  email: string | null;
-  disabled: boolean;
-  createdAt: string;
-  lastSignIn: string;
-  isAdmin: boolean;
+  email: string;
+  businessName?: string;
+  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete';
+  stripeCustomerId?: string;
+  squareConnected?: boolean;
+  createdAt?: any;
+  lastLogin?: any;
+  disabled?: boolean;
+  isAdmin?: boolean;
+}
+
+interface ReviewRequest {
+  id: string;
+  business_name: string;
+  owner_id: string;
+  created_at: any;
+  status?: string;
+  customer_email?: string;
 }
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [allUsers, setAllUsers] = useState<AppUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [reviewRequests, setReviewRequests] = useState<ReviewRequest[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'requests' | 'system'>('overview');
+  const [auth, setAuth] = useState<any>(null);
+  const [db, setDb] = useState<any>(null);
+
+  // Initialize Firebase only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      import('../../lib/firebase').then((firebase) => {
+        setAuth(firebase.auth);
+        setDb(firebase.db);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!auth) return; // Wait for Firebase to load
+
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoadingAuth(false);
+    });
+    return () => unsubscribe();
+  }, [auth]);
+
+  useEffect(() => {
+    if (!user || !auth) {
+      setIsAdmin(false);
+      setUsers([]);
+      setReviewRequests([]);
+      setLoadingData(false);
+      return;
+    }
+
+    // Check admin status
+    user.getIdTokenResult(true).then((tokenResult) => {
+      if (tokenResult.claims.admin === true) {
+        setIsAdmin(true);
+        fetchData();
+      } else {
+        setIsAdmin(false);
+        setLoadingData(false);
+      }
+    });
+  }, [user, auth]);
+
+  const fetchData = () => {
+    if (!db) return;
+
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, orderBy('createdAt', 'desc'), limit(10));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedUsers: UserData[] = snapshot.docs.map(doc => ({
+        uid: doc.id,
+        ...doc.data()
+      })) as UserData[];
+      setUsers(fetchedUsers);
+      setLoadingData(false);
+    }, (error) => {
+      console.error("Error fetching users:", error);
+      setLoadingData(false);
+    });
+
+    return () => unsubscribe();
+  };
 
   // This function handles the API call to enable or disable a user.
   const handleToggleUserStatus = async (targetUid: string, currentStatus: boolean) => {
@@ -28,7 +139,7 @@ export default function AdminPage() {
 
     // This is an "optimistic update". We update the UI immediately
     // for a snappy, responsive feel, assuming the API call will succeed.
-    setAllUsers(allUsers.map(u => 
+    setUsers(users.map(u => 
       u.uid === targetUid ? { ...u, disabled: !currentStatus } : u
     ));
 
@@ -52,50 +163,17 @@ export default function AdminPage() {
       }
     } catch (err: any) {
       console.error("Error toggling user status:", err);
-      setError(err.message);
       // If the API call fails, we revert the UI back to its original state.
-      setAllUsers(allUsers.map(u => 
+      setUsers(users.map(u => 
         u.uid === targetUid ? { ...u, disabled: currentStatus } : u
       ));
     }
   };
 
-  // This useEffect hook handles authentication and data fetching.
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        const tokenResult = await currentUser.getIdTokenResult(true);
-        const isAdminClaim = tokenResult.claims.admin === true;
-        setIsAdmin(isAdminClaim);
-
-        if (isAdminClaim) {
-          try {
-            const idToken = await currentUser.getIdToken();
-            const response = await fetch('/api/list-users', {
-              headers: { Authorization: `Bearer ${idToken}` },
-            });
-            if (!response.ok) throw new Error('Failed to fetch user list.');
-            const data = await response.json();
-            setAllUsers(data.users);
-          } catch (error) {
-            console.error("Error fetching users:", error);
-            setError("Could not load user data.");
-          } finally {
-            setLoadingUsers(false);
-          }
-        }
-      } else {
-        setIsAdmin(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []); // The empty dependency array means this runs once on component mount
-
   // --- UI Rendering Logic ---
 
-  if (isAdmin === null) {
-    return <div className="text-center mt-20 animate-pulse">Verifying access...</div>;
+  if (loadingAuth) {
+    return <div className="text-center mt-20 animate-pulse">Loading authentication...</div>;
   }
 
   if (isAdmin === false) {
@@ -114,10 +192,10 @@ export default function AdminPage() {
     <main className="min-h-screen bg-gray-50 p-4 sm:p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
+        {/* Placeholder for other admin content */}
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Platform Users</h2>
-          {loadingUsers ? (
+          {loadingData ? (
             <p>Loading users...</p>
           ) : (
             <div className="overflow-x-auto">
@@ -131,11 +209,11 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {allUsers.map((appUser) => (
+                  {users.map((appUser) => (
                     <tr key={appUser.uid}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{appUser.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {appUser.disabled ? (
+                                                 {(appUser.disabled || false) ? (
                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Disabled</span>
                         ) : (
                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
@@ -152,10 +230,10 @@ export default function AdminPage() {
                         {/* Prevent an admin from disabling themselves */}
                         {!appUser.isAdmin && (
                            <button 
-                            onClick={() => handleToggleUserStatus(appUser.uid, appUser.disabled)}
-                            className={`px-3 py-1 text-xs rounded-md ${appUser.disabled ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white transition-colors duration-200`}
+                                                         onClick={() => handleToggleUserStatus(appUser.uid, appUser.disabled || false)}
+                                                         className={`px-3 py-1 text-xs rounded-md ${(appUser.disabled || false) ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} text-white transition-colors duration-200`}
                            >
-                            {appUser.disabled ? 'Enable' : 'Disable'}
+                                                         {(appUser.disabled || false) ? 'Enable' : 'Disable'}
                            </button>
                         )}
                       </td>

@@ -1,10 +1,11 @@
-# Exclude built files - we'll build on the instance
-.next/
-.next/static/
-.next/server/
+# Include everything needed for the app to run
+!.next/
+!.next/static/
+!.next/server/
+!package.json
+!package-lock.json
 
 # Ignore development files
-node_modules/
 .git/
 .env.local
 .env.development

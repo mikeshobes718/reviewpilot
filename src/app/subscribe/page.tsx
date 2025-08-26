@@ -171,10 +171,10 @@ export default function SubscribePage() {
                   <button
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan.id as 'starter' | 'pro')}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform ${
                       selectedPlan === plan.id
-                        ? 'bg-primary-600 text-white shadow-medium'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg scale-105'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     {plan.name}
@@ -207,7 +207,11 @@ export default function SubscribePage() {
                     </div>
                   )}
                   
-                  <div className={`card p-8 h-full ${plan.popular ? 'ring-2 ring-primary-200' : ''}`}>
+                  <div className={`card p-8 h-full transition-all duration-300 ${
+                    plan.popular ? 'ring-2 ring-primary-200' : ''
+                  } ${
+                    selectedPlan === plan.id ? 'ring-4 ring-primary-400 shadow-xl scale-105' : ''
+                  }`}>
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                       <p className="text-gray-600 mb-6">{plan.description}</p>

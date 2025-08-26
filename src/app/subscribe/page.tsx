@@ -245,7 +245,7 @@ export default function SubscribePage() {
                         <button
                           onClick={handleSubscribe}
                           disabled={loading || !user}
-                          className="btn-primary w-full group"
+                          className="btn-primary w-full group inline-flex items-center justify-center"
                         >
                           {loading ? (
                             <>
@@ -454,7 +454,7 @@ export default function SubscribePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Reviews & Marketing. All rights reserved.</p>
+                          <p>&copy; 2025 Reviews & Marketing. All rights reserved.</p>
           </div>
         </div>
       </footer>

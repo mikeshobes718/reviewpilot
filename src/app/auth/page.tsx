@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   AuthError,
 } from 'firebase/auth';
 import { 
@@ -53,6 +54,19 @@ export default function AuthPage() {
     }
   }, []);
 
+  // Check for verification message in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const message = urlParams.get('message');
+      if (message) {
+        setError(message);
+        // Clear the message from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
@@ -70,20 +84,32 @@ export default function AuthPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        // Send welcome email
-        const { EmailService } = await import('../../lib/emailService');
-        const name = email.split('@')[0]; // Extract name from email
-        await EmailService.sendWelcomeEmail(email, name);
-        
-        setSuccessMessage('Account created successfully! Welcome to Reviews & Marketing.');
-        setIsRedirecting(true);
-        // Redirect to dashboard after successful signup
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 2000);
+        // Send verification email
+        try {
+          await sendEmailVerification(user);
+          setSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
+          setIsRedirecting(false);
+          // Don't redirect - user needs to verify email first
+        } catch (emailError) {
+          console.error('Failed to send verification email:', emailError);
+          setError('Account created but verification email failed to send. Please try signing in later.');
+        }
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        
+        // Check if email is verified
+        if (!user.emailVerified) {
+          setError('Please verify your email address before signing in. Check your inbox for a verification link.');
+          // Send verification email again if needed
+          try {
+            await sendEmailVerification(user);
+            setError('Please verify your email address before signing in. A new verification email has been sent.');
+          } catch (emailError) {
+            console.error('Failed to send verification email:', emailError);
+          }
+          return;
+        }
         
         setSuccessMessage('Welcome back! Signing you in...');
         setIsRedirecting(true);
@@ -250,6 +276,29 @@ export default function AuthPage() {
                           <p className="text-success-600 text-xs">Redirecting to dashboard...</p>
                         </div>
                       )}
+                      {!isRedirecting && isSignUp && (
+                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <p className="text-blue-700 text-xs mb-2">
+                            📧 Check your email for a verification link. Click the link to verify your account, then come back to sign in.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (auth?.currentUser) {
+                                try {
+                                  await sendEmailVerification(auth.currentUser);
+                                  setSuccessMessage('Verification email sent again! Check your inbox.');
+                                } catch (error) {
+                                  setError('Failed to send verification email. Please try again.');
+                                }
+                              }
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 underline"
+                          >
+                            Resend verification email
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -354,14 +403,15 @@ export default function AuthPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                setIsSignUp(false);
                                 setError(null);
                                 setEmail('');
                                 setPassword('');
-                                // Force a re-render
-                                setTimeout(() => {
-                                  setIsSignUp(false);
-                                }, 100);
+                                // Use a more direct approach
+                                const newSignUpState = false;
+                                setIsSignUp(newSignUpState);
+                                // Also trigger a form reset
+                                const form = document.querySelector('form');
+                                if (form) form.reset();
                               }}
                               className="text-xs text-red-600 hover:text-red-800 underline"
                             >

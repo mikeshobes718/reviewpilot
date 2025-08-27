@@ -99,6 +99,13 @@ export default function Dashboard() {
       return;
     }
 
+    // Check if email is verified
+    if (!user.emailVerified) {
+      // Redirect to auth page with verification message
+      window.location.href = '/auth?message=Please verify your email address before accessing the dashboard.';
+      return;
+    }
+
     setLoadingProfile(true);
 
     // Fetch admin status

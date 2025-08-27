@@ -104,7 +104,7 @@ export default function ContactPage() {
                 Email Us
               </h3>
               <div className="text-primary-600 font-medium mb-3">
-                hello@reviewsandmarketing.com
+                contact@reviewsandmarketing.com
               </div>
               <p className="text-gray-600 text-sm">
                 We typically respond within 2-4 hours during business hours

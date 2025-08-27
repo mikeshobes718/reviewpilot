@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { EmailService } from '../../../lib/email-service';
+import { config } from '../../../lib/config';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,11 +26,11 @@ export async function POST(request: NextRequest) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Postmark-Server-Token': process.env.POSTMARK_API_KEY || '50e2ca3f-c387-4cd0-84a9-ff7fb7928d55',
+        'X-Postmark-Server-Token': config.postmark.apiKey,
       },
       body: JSON.stringify({
-        From: process.env.POSTMARK_FROM_EMAIL || 'hello@reviewsandmarketing.com',
-        To: 'hello@reviewsandmarketing.com',
+        From: config.postmark.fromEmail,
+        To: config.company.supportEmail,
         Subject: `New Contact Form Submission: ${inquiryType}`,
         TextBody: `
 New contact form submission:

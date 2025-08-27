@@ -72,6 +72,12 @@ export default function AuthPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submission started');
+    console.log('isSignUp:', isSignUp);
+    console.log('agreedToTerms:', agreedToTerms);
+    console.log('password length:', password.length);
+    console.log('passwordStrength score:', passwordStrength.score);
+    
     if (!auth) {
       setError('Authentication system is initializing. Please try again in a moment.');
       return;
@@ -79,20 +85,26 @@ export default function AuthPage() {
 
     // Additional validation for signup
     if (isSignUp) {
+      console.log('Running signup validation...');
       if (!agreedToTerms) {
+        console.log('Terms not agreed to - setting error');
         setError('You must agree to the Terms of Service and Privacy Policy to continue.');
         return;
       }
       
       if (password.length < 8) {
+        console.log('Password too short - setting error');
         setError('Password must be at least 8 characters long.');
         return;
       }
       
       if (passwordStrength.score < 3) {
+        console.log('Password too weak - setting error');
         setError('Please choose a stronger password. Include uppercase, lowercase, numbers, and special characters.');
         return;
       }
+      
+      console.log('All validation passed');
     }
     
     setIsSubmitting(true);

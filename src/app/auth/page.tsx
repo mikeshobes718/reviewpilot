@@ -356,6 +356,12 @@ export default function AuthPage() {
                               onClick={() => {
                                 setIsSignUp(false);
                                 setError(null);
+                                setEmail('');
+                                setPassword('');
+                                // Force a re-render
+                                setTimeout(() => {
+                                  setIsSignUp(false);
+                                }, 100);
                               }}
                               className="text-xs text-red-600 hover:text-red-800 underline"
                             >

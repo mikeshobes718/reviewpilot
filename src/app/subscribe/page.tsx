@@ -171,12 +171,17 @@ export default function SubscribePage() {
                     className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                       selectedPlan === plan.id
                         ? 'bg-primary-600 text-white shadow-medium'
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                   >
                     {plan.name}
                   </button>
                 ))}
+              </div>
+              <div className="ml-6 flex items-center">
+                <span className="text-sm text-gray-600">
+                  Currently viewing: <span className="font-semibold text-primary-600">{selectedPlan === 'starter' ? 'Starter Plan' : 'Pro Plan'}</span>
+                </span>
               </div>
             </div>
           </motion.div>
@@ -204,7 +209,11 @@ export default function SubscribePage() {
                     </div>
                   )}
                   
-                  <div className={`card p-8 h-full ${plan.popular ? 'ring-2 ring-primary-200' : ''}`}>
+                  <div className={`card p-8 h-full transition-all duration-300 ${
+                    plan.popular ? 'ring-2 ring-primary-200' : ''
+                  } ${
+                    selectedPlan === plan.id ? 'ring-2 ring-primary-500 shadow-large scale-105' : 'hover:shadow-medium'
+                  }`}>
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                       <p className="text-gray-600 mb-6">{plan.description}</p>
@@ -287,11 +296,19 @@ export default function SubscribePage() {
                 <div className="p-6 text-center bg-gray-50">
                   <h3 className="font-semibold text-gray-900">Feature</h3>
                 </div>
-                <div className="p-6 text-center">
-                  <h3 className="font-semibold text-gray-900">Starter</h3>
+                <div className={`p-6 text-center transition-colors duration-200 cursor-pointer ${
+                  selectedPlan === 'starter' ? 'bg-primary-100' : 'hover:bg-gray-50'
+                }`} onClick={() => setSelectedPlan('starter')}>
+                  <h3 className={`font-semibold transition-colors duration-200 ${
+                    selectedPlan === 'starter' ? 'text-primary-700' : 'text-gray-900'
+                  }`}>Starter</h3>
                 </div>
-                <div className="p-6 text-center">
-                  <h3 className="font-semibold text-gray-900">Pro</h3>
+                <div className={`p-6 text-center transition-colors duration-200 cursor-pointer ${
+                  selectedPlan === 'pro' ? 'bg-primary-100' : 'hover:bg-gray-50'
+                }`} onClick={() => setSelectedPlan('pro')}>
+                  <h3 className={`font-semibold transition-colors duration-200 ${
+                    selectedPlan === 'pro' ? 'text-primary-700' : 'text-gray-900'
+                  }`}>Pro</h3>
                 </div>
               </div>
               
@@ -308,11 +325,19 @@ export default function SubscribePage() {
                   <div className="p-6 bg-gray-50">
                     <span className="font-medium text-gray-900">{item.feature}</span>
                   </div>
-                  <div className="p-6 text-center">
-                    <span className="text-gray-600">{item.starter}</span>
+                  <div className={`p-6 text-center transition-colors duration-200 ${
+                    selectedPlan === 'starter' ? 'bg-primary-50 border-r border-primary-200' : ''
+                  }`}>
+                    <span className={`font-medium ${
+                      selectedPlan === 'starter' ? 'text-primary-700' : 'text-gray-600'
+                    }`}>{item.starter}</span>
                   </div>
-                  <div className="p-6 text-center">
-                    <span className="text-gray-600">{item.pro}</span>
+                  <div className={`p-6 text-center transition-colors duration-200 ${
+                    selectedPlan === 'pro' ? 'bg-primary-50 border-l border-primary-200' : ''
+                  }`}>
+                    <span className={`font-medium ${
+                      selectedPlan === 'pro' ? 'text-primary-700' : 'text-gray-600'
+                    }`}>{item.pro}</span>
                   </div>
                 </div>
               ))}

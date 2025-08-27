@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { EmailService } from '../../../lib/email-service';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,44 +56,8 @@ Submitted at: ${new Date().toISOString()}
       throw new Error('Failed to send email via Postmark');
     }
 
-    // Send confirmation email to user
-    await fetch('https://api.postmarkapp.com/email', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Postmark-Server-Token': process.env.POSTMARK_API_KEY || '',
-      },
-      body: JSON.stringify({
-        From: process.env.POSTMARK_FROM_EMAIL || 'hello@reviewsandmarketing.com',
-        To: email,
-        Subject: 'Thank you for contacting Reviews & Marketing',
-        TextBody: `
-Dear ${name},
-
-Thank you for reaching out to Reviews & Marketing. We have received your message and will get back to you within 24 hours.
-
-Your message:
-${message}
-
-If you have any urgent questions, please don't hesitate to call us directly.
-
-Best regards,
-The Reviews & Marketing Team
-        `,
-        HtmlBody: `
-<h2>Thank you for contacting us!</h2>
-<p>Dear ${name},</p>
-<p>Thank you for reaching out to <strong>Reviews & Marketing</strong>. We have received your message and will get back to you within 24 hours.</p>
-<hr>
-<p><strong>Your message:</strong></p>
-<p>${message.replace(/\n/g, '<br>')}</p>
-<hr>
-<p>If you have any urgent questions, please don't hesitate to call us directly.</p>
-<p>Best regards,<br>The Reviews & Marketing Team</p>
-        `,
-      }),
-    });
+    // Send confirmation email to user using beautiful template
+    await EmailService.sendContactConfirmation(email, name);
 
     return NextResponse.json({ success: true });
   } catch (error) {

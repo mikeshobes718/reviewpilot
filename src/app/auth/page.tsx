@@ -3,6 +3,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { auth } from '../../lib/firebase';
+import { EmailService } from '../../lib/email-service';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -84,9 +85,7 @@ export default function AuthPage() {
     console.log('Form target:', e.target);
     console.log('=============================');
     
-    // Simple test - just set an error message to see if the function works
-    setError('TEST: Form submission handler is working!');
-    return;
+
     
     if (!auth) {
       console.log('Auth not ready - setting error');
@@ -131,7 +130,30 @@ export default function AuthPage() {
         
         // Send verification email
         try {
+          // Send Firebase verification email first
           await sendEmailVerification(user);
+          
+          // Then send our beautiful verification email
+          try {
+            const userName = user.email?.split('@')[0];
+            const verificationLink = `https://reviewsandmarketing.com/auth?mode=verifyEmail&email=${encodeURIComponent(user.email || '')}`;
+            
+            await fetch('/api/send-verification-email', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                email: user.email,
+                verificationLink,
+                userName
+              }),
+            });
+          } catch (customEmailError) {
+            console.error('Failed to send custom verification email:', customEmailError);
+            // Continue with Firebase email if custom email fails
+          }
+          
           console.log('User created successfully:', user.uid, 'Email verified:', user.emailVerified);
           setSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
           setIsRedirecting(false);
@@ -150,7 +172,30 @@ export default function AuthPage() {
             setError('Please verify your email address before signing in. Check your inbox for a verification link.');
             // Send verification email again if needed
             try {
+              // Send Firebase verification email first
               await sendEmailVerification(user);
+              
+              // Then send our beautiful verification email
+              try {
+                const userName = user.email?.split('@')[0];
+                const verificationLink = `https://reviewsandmarketing.com/auth?mode=verifyEmail&email=${encodeURIComponent(user.email || '')}`;
+                
+                await fetch('/api/send-verification-email', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    email: user.email,
+                    verificationLink,
+                    userName
+                  }),
+                });
+              } catch (customEmailError) {
+                console.error('Failed to send custom verification email:', customEmailError);
+                // Continue with Firebase email if custom email fails
+              }
+              
               setError('Please verify your email address before signing in. A new verification email has been sent.');
             } catch (emailError) {
               console.error('Failed to send verification email:', emailError);
@@ -262,7 +307,35 @@ export default function AuthPage() {
     setSuccessMessage(null);
 
     try {
+      // First, try to send Firebase password reset email to get the reset link
       await sendPasswordResetEmail(auth, passwordResetEmail);
+      
+      // Then send our beautiful password reset email
+      try {
+        // Get the user to extract username if available
+        const user = auth.currentUser;
+        const userName = user?.email?.split('@')[0];
+        
+        // For now, we'll use a placeholder reset link since Firebase handles the actual reset
+        // In a production app, you might want to intercept the Firebase email and replace it
+        const resetLink = `https://reviewsandmarketing.com/auth?mode=resetPassword&email=${encodeURIComponent(passwordResetEmail)}`;
+        
+        await fetch('/api/send-password-reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: passwordResetEmail,
+            resetLink,
+            userName
+          }),
+        });
+      } catch (customEmailError) {
+        console.error('Failed to send custom password reset email:', customEmailError);
+        // Continue with Firebase email if custom email fails
+      }
+      
       setSuccessMessage('Password reset email sent! Check your inbox for instructions.');
       setPasswordResetEmail('');
       setTimeout(() => {
@@ -372,7 +445,30 @@ export default function AuthPage() {
                             onClick={async () => {
                               if (auth?.currentUser) {
                                 try {
+                                  // Send Firebase verification email first
                                   await sendEmailVerification(auth.currentUser);
+                                  
+                                  // Then send our beautiful verification email
+                                  try {
+                                    const userName = auth.currentUser.email?.split('@')[0];
+                                    const verificationLink = `https://reviewsandmarketing.com/auth?mode=verifyEmail&email=${encodeURIComponent(auth.currentUser.email || '')}`;
+                                    
+                                    await fetch('/api/send-verification-email', {
+                                      method: 'POST',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                      },
+                                      body: JSON.stringify({
+                                        email: auth.currentUser.email,
+                                        verificationLink,
+                                        userName
+                                      }),
+                                    });
+                                  } catch (customEmailError) {
+                                    console.error('Failed to send custom verification email:', customEmailError);
+                                    // Continue with Firebase email if custom email fails
+                                  }
+                                  
                                   setSuccessMessage('Verification email sent again! Check your inbox.');
                                 } catch (error) {
                                   setError('Failed to send verification email. Please try again.');

@@ -79,6 +79,8 @@ export default function SubscribePage() {
 
   const handleSubscribe = async () => {
     if (!user) {
+      // Show clear message about needing to sign in
+      alert('You must sign in to subscribe to a plan. Redirecting to sign-in page...');
       window.location.href = '/auth';
       return;
     }
@@ -107,7 +109,17 @@ export default function SubscribePage() {
       window.location.assign(url);
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      alert('Failed to create checkout session. Please try again.');
+      
+      // Better error handling
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to create checkout session')) {
+          alert('Unable to process subscription at this time. Please ensure you are signed in and try again.');
+        } else {
+          alert(`Subscription error: ${error.message}`);
+        }
+      } else {
+        alert('An unexpected error occurred. Please try again or contact support.');
+      }
     } finally {
       setLoading(false);
     }
@@ -206,7 +218,11 @@ export default function SubscribePage() {
                 <div className={`relative ${plan.popular ? 'lg:-mt-8 lg:mb-8' : ''}`}>
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center">
+                      <div 
+                        className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center"
+                        role="status"
+                        aria-label="Most Popular Plan - Recommended choice for growing businesses"
+                      >
                         <Crown className="w-4 h-4 mr-2" />
                         Most Popular
                       </div>
@@ -429,6 +445,16 @@ export default function SubscribePage() {
             </div>
             <p className="text-primary-200 text-sm mt-6">
               No credit card required • 30-day free trial • Cancel anytime
+            </p>
+            <p className="text-primary-200 text-xs mt-2">
+              By subscribing, you agree to our{' '}
+              <Link href="/terms" className="underline hover:text-white">
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="underline hover:text-white">
+                Privacy Policy
+              </Link>
             </p>
           </motion.div>
         </div>

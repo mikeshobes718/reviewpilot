@@ -298,6 +298,10 @@ export default function ContactPage() {
                 
                 <p className="text-sm text-gray-500 text-center">
                   By submitting this form, you agree to our{' '}
+                  <Link href="/terms" className="text-primary-600 hover:underline">
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
                   <Link href="/privacy" className="text-primary-600 hover:underline">
                     Privacy Policy
                   </Link>
@@ -366,6 +370,7 @@ export default function ContactPage() {
                 <li><a href="/about" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
                 <li><a href="/privacy" className="hover:text-white transition-colors">Privacy</a></li>
+                <li><a href="/terms" className="hover:text-white transition-colors">Terms</a></li>
               </ul>
             </div>
           </div>

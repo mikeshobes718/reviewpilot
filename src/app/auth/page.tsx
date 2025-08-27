@@ -37,6 +37,8 @@ export default function AuthPage() {
   const [passwordResetEmail, setPasswordResetEmail] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<{score: number, feedback: string}>({score: 0, feedback: ''});
 
   useEffect(() => {
     // Check if Firebase auth is ready
@@ -73,6 +75,24 @@ export default function AuthPage() {
     if (!auth) {
       setError('Authentication system is initializing. Please try again in a moment.');
       return;
+    }
+
+    // Additional validation for signup
+    if (isSignUp) {
+      if (!agreedToTerms) {
+        setError('You must agree to the Terms of Service and Privacy Policy to continue.');
+        return;
+      }
+      
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters long.');
+        return;
+      }
+      
+      if (passwordStrength.score < 3) {
+        setError('Please choose a stronger password. Include uppercase, lowercase, numbers, and special characters.');
+        return;
+      }
     }
     
     setIsSubmitting(true);
@@ -177,6 +197,26 @@ export default function AuthPage() {
   const clearMessages = () => {
     setError(null);
     setSuccessMessage(null);
+  };
+
+  const checkPasswordStrength = (password: string) => {
+    let score = 0;
+    let feedback = '';
+    
+    if (password.length >= 8) score += 1;
+    if (/[a-z]/.test(password)) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    
+    if (score === 0) feedback = 'Very weak';
+    else if (score === 1) feedback = 'Weak';
+    else if (score === 2) feedback = 'Fair';
+    else if (score === 3) feedback = 'Good';
+    else if (score === 4) feedback = 'Strong';
+    else feedback = 'Very strong';
+    
+    return { score, feedback };
   };
 
   const handlePasswordReset = async (e: FormEvent) => {
@@ -361,12 +401,17 @@ export default function AuthPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => {
-                      setPassword(e.target.value);
+                      const newPassword = e.target.value;
+                      setPassword(newPassword);
+                      if (isSignUp) {
+                        setPasswordStrength(checkPasswordStrength(newPassword));
+                      }
                       clearMessages();
                     }}
                     placeholder="••••••••"
                     className="input-field pr-12 pl-10"
                     required
+                    minLength={8}
                     disabled={isSubmitting}
                   />
                   <button
@@ -378,10 +423,36 @@ export default function AuthPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {isSignUp && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Password must be at least 6 characters long
-                  </p>
+                
+                {/* Password Strength Indicator */}
+                {isSignUp && password && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600">Password strength:</span>
+                      <span className={`text-xs font-medium ${
+                        passwordStrength.score <= 1 ? 'text-red-600' :
+                        passwordStrength.score <= 2 ? 'text-orange-600' :
+                        passwordStrength.score <= 3 ? 'text-yellow-600' :
+                        'text-green-600'
+                      }`}>
+                        {passwordStrength.feedback}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          passwordStrength.score <= 1 ? 'bg-red-500' :
+                          passwordStrength.score <= 2 ? 'bg-orange-500' :
+                          passwordStrength.score <= 3 ? 'bg-yellow-500' :
+                          'bg-green-500'
+                        }`}
+                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Password must be at least 8 characters with uppercase, lowercase, number, and special character
+                    </p>
+                  </div>
                 )}
                 {!isSignUp && (
                   <div className="mt-2 text-right">
@@ -444,6 +515,31 @@ export default function AuthPage() {
                     </div>
                   </div>
                 </motion.div>
+              )}
+
+              {/* Terms Agreement Checkbox */}
+              {isSignUp && (
+                <div className="flex items-start space-x-3">
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-offset-0"
+                    required
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-700">
+                    I agree to the{' '}
+                    <Link href="/terms" className="text-primary-600 hover:text-primary-700 underline" target="_blank">
+                      Terms of Service
+                    </Link>
+                    {' '}and{' '}
+                    <Link href="/privacy" className="text-primary-600 hover:text-primary-700 underline" target="_blank">
+                      Privacy Policy
+                    </Link>
+                    . I understand that I must verify my email address before accessing the platform.
+                  </label>
+                </div>
               )}
 
               {/* Submit Button */}

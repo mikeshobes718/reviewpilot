@@ -132,14 +132,9 @@ export default function Home() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50">
-          <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-xl">
+          <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
-                  <Star className="w-4 h-4 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">Menu</h3>
-              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Menu</h3>
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -151,36 +146,36 @@ export default function Home() {
             <nav className="p-6 space-y-4">
               <a 
                 href="#features" 
-                className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </a>
               <a 
                 href="#pricing" 
-                className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
               </a>
               <a 
                 href="#testimonials" 
-                className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Success Stories
               </a>
-              <div className="pt-4 border-t border-gray-200 space-y-3">
+              <div className="pt-4 border-t border-gray-200">
                 <Link 
                   href="/auth" 
-                  className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
+                  className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link 
                   href="/subscribe" 
-                  className="btn-primary w-full py-3 px-4 text-center"
+                  className="btn-primary w-full mt-3"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started
@@ -218,13 +213,13 @@ export default function Home() {
                 We automatically request reviews from satisfied customers, making it effortless to build your online reputation.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/subscribe" className="btn-primary text-lg px-8 py-4 inline-flex items-center">
+                <Link href="/subscribe" className="btn-primary text-lg px-8 py-4">
                   Start Free Trial
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
                 <button 
                   onClick={() => window.open('https://youtu.be/1KjxVwnzMYw?si=7qOVbMQR6ad9DRaG', '_blank')}
-                  className="btn-secondary text-lg px-8 py-4 group inline-flex items-center"
+                  className="btn-secondary text-lg px-8 py-4 group"
                 >
                   <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                   Watch Demo
@@ -449,7 +444,7 @@ export default function Home() {
                 </ul>
 
                 <div className="mt-auto">
-                  <Link href="/subscribe" className="w-full group inline-flex items-center justify-center bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-medium focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2">
+                  <Link href="/subscribe" className="btn-secondary w-full group">
                     Get Started Free
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
@@ -520,7 +515,12 @@ export default function Home() {
                       </div>
                       <span className="text-gray-700">Team collaboration</span>
                     </li>
-
+                    <li className="flex items-start space-x-3">
+                      <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircle className="w-3 h-3 text-success-600" />
+                      </div>
+                      <span className="text-gray-700">API access</span>
+                    </li>
                     <li className="flex items-start space-x-3">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
@@ -529,8 +529,8 @@ export default function Home() {
                     </li>
                   </ul>
 
-                       <div className="mt-auto">
-                         <Link href="/subscribe" className="w-full group inline-flex items-center justify-center bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-medium focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                                         <div className="mt-auto">
+                         <Link href="/subscribe" className="btn-primary w-full group">
                            Get Started
                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                          </Link>
@@ -612,9 +612,9 @@ export default function Home() {
               and building stronger customer relationships.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/subscribe" className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large inline-flex items-center">
+              <Link href="/subscribe" className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large">
                 Start Free Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2 inline" />
               </Link>
               <Link href="/auth" className="text-white border border-white/30 hover:bg-white/10 font-semibold py-4 px-8 rounded-xl transition-all duration-200">
                 Sign In

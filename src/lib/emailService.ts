@@ -1,8 +1,10 @@
 // src/lib/emailService.ts
 
+import { config } from './config';
+
 // Postmark email service configuration
-const POSTMARK_API_KEY = process.env.NEXT_PUBLIC_POSTMARK_API_KEY || process.env.POSTMARK_API_KEY;
-const POSTMARK_FROM_EMAIL = 'noreply@reviewsandmarketing.com';
+const POSTMARK_API_KEY = process.env.NEXT_PUBLIC_POSTMARK_API_KEY || process.env.POSTMARK_API_KEY || config.postmark.apiKey;
+const POSTMARK_FROM_EMAIL = config.postmark.fromEmail;
 
 export class EmailService {
   // Welcome email for new users

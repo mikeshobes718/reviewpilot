@@ -70,6 +70,7 @@ export default function SubscribePage() {
         'Custom branding',
         'Advanced integrations',
         'Team collaboration',
+        'API access',
         'White-label options'
       ],
       popular: true
@@ -78,8 +79,6 @@ export default function SubscribePage() {
 
   const handleSubscribe = async () => {
     if (!user) {
-      // Show clear message about needing to sign in
-      alert('You must sign in to subscribe to a plan. Redirecting to sign-in page...');
       window.location.href = '/auth';
       return;
     }
@@ -108,25 +107,10 @@ export default function SubscribePage() {
       window.location.assign(url);
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      
-      // Better error handling
-      if (error instanceof Error) {
-        if (error.message.includes('Failed to create checkout session')) {
-          alert('Unable to process subscription at this time. Please ensure you are signed in and try again.');
-        } else {
-          alert(`Subscription error: ${error.message}`);
-        }
-      } else {
-        alert('An unexpected error occurred. Please try again or contact support.');
-      }
+      alert('Failed to create checkout session. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePlanSelection = (planId: 'starter' | 'pro') => {
-    setSelectedPlan(planId);
-    console.log('Plan selected:', planId);
   };
 
   return (
@@ -134,12 +118,12 @@ export default function SubscribePage() {
       {/* Navigation */}
       <nav className="relative z-50 px-6 py-4 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
               <Star className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
-          </Link>
+          </div>
           <div className="flex items-center space-x-4">
             <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
               Sign In
@@ -186,13 +170,12 @@ export default function SubscribePage() {
                 {plans.map((plan) => (
                   <button
                     key={plan.id}
-                    onClick={() => handlePlanSelection(plan.id as 'starter' | 'pro')}
-                    className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform ${
+                    onClick={() => setSelectedPlan(plan.id as 'starter' | 'pro')}
+                    className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                       selectedPlan === plan.id
-                        ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg scale-105'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'bg-primary-600 text-white shadow-medium'
+                        : 'text-gray-600 hover:text-gray-900'
                     }`}
-                    data-testid={`plan-${plan.id}-button`}
                   >
                     {plan.name}
                   </button>
@@ -217,22 +200,14 @@ export default function SubscribePage() {
                 <div className={`relative ${plan.popular ? 'lg:-mt-8 lg:mb-8' : ''}`}>
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <div 
-                        className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center"
-                        role="status"
-                        aria-label="Most Popular Plan - Recommended choice for growing businesses"
-                      >
+                      <div className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center">
                         <Crown className="w-4 h-4 mr-2" />
                         Most Popular
                       </div>
                     </div>
                   )}
                   
-                  <div className={`card p-8 h-full transition-all duration-300 ${
-                    plan.popular ? 'ring-2 ring-primary-200' : ''
-                  } ${
-                    selectedPlan === plan.id ? 'ring-4 ring-primary-400 shadow-xl scale-105' : ''
-                  }`}>
+                  <div className={`card p-8 h-full ${plan.popular ? 'ring-2 ring-primary-200' : ''}`}>
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                       <p className="text-gray-600 mb-6">{plan.description}</p>
@@ -258,11 +233,7 @@ export default function SubscribePage() {
 
                     <div className="mt-auto">
                       {plan.id === 'starter' ? (
-                        <Link 
-                          href="/auth" 
-                          className="w-full group inline-flex items-center justify-center bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-medium focus:outline-none focus:ring-2 focus:ring-success-500 focus:ring-offset-2"
-                          data-testid="starter-get-started-button"
-                        >
+                        <Link href="/auth" className="btn-secondary w-full group">
                           Get Started Free
                           <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -270,8 +241,7 @@ export default function SubscribePage() {
                         <button
                           onClick={handleSubscribe}
                           disabled={loading || !user}
-                          className="btn-primary w-full group inline-flex items-center justify-center"
-                          data-testid="pro-subscribe-button"
+                          className="btn-primary w-full group"
                         >
                           {loading ? (
                             <>
@@ -280,7 +250,7 @@ export default function SubscribePage() {
                             </>
                           ) : (
                             <>
-                              {user ? 'Subscribe to Pro' : 'Sign In to Subscribe'}
+                              {user ? 'Start Pro Trial' : 'Sign In to Subscribe'}
                               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                             </>
                           )}
@@ -430,11 +400,7 @@ export default function SubscribePage() {
               and building stronger customer relationships.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                href="/auth" 
-                className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large"
-                data-testid="cta-start-free-trial"
-              >
+              <Link href="/auth" className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-large">
                 Start Free Trial
                 <ArrowRight className="w-5 h-5 ml-2 inline" />
               </Link>
@@ -444,16 +410,6 @@ export default function SubscribePage() {
             </div>
             <p className="text-primary-200 text-sm mt-6">
               No credit card required • 30-day free trial • Cancel anytime
-            </p>
-            <p className="text-primary-200 text-xs mt-2">
-              By subscribing, you agree to our{' '}
-              <Link href="/terms" className="underline hover:text-white">
-                Terms of Service
-              </Link>
-              {' '}and{' '}
-              <Link href="/privacy" className="underline hover:text-white">
-                Privacy Policy
-              </Link>
             </p>
           </motion.div>
         </div>
@@ -494,7 +450,7 @@ export default function SubscribePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Reviews & Marketing. All rights reserved.</p>
+            <p>&copy; 2024 Reviews & Marketing. All rights reserved.</p>
           </div>
         </div>
       </footer>

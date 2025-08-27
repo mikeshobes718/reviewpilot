@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { auth, db } from '../../lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { db, auth } from '../../lib/firebase';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   collection,
   query,
@@ -30,10 +30,7 @@ import {
   Calendar,
   Target,
   Clock,
-  CheckCircle,
-  Menu,
-  X,
-  Home
+  CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -55,8 +52,7 @@ interface UserProfile {
 }
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+  const { user, loading: loadingAuth } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -64,35 +60,6 @@ export default function Dashboard() {
   const [newBusinessName, setNewBusinessName] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isManagingBilling, setIsManagingBilling] = useState(false);
-  const [verificationChecked, setVerificationChecked] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Effect 1: Handle authentication state changes
-  useEffect(() => {
-    // Add a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      if (loadingAuth) {
-        console.log('Auth timeout - forcing loading to false');
-        setLoadingAuth(false);
-      }
-    }, 10000); // 10 second timeout
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      console.log('Auth state changed:', currentUser ? 'User logged in' : 'No user');
-      setUser(currentUser);
-      setLoadingAuth(false);
-      clearTimeout(timeoutId);
-    }, (error) => {
-      console.error('Auth error:', error);
-      setLoadingAuth(false);
-      clearTimeout(timeoutId);
-    });
-    
-    return () => {
-      unsubscribe();
-      clearTimeout(timeoutId);
-    };
-  }, [loadingAuth]);
 
   // Effect 2: Handle user-specific data after authentication
   useEffect(() => {
@@ -104,14 +71,6 @@ export default function Dashboard() {
       return;
     }
 
-    // Check if email is verified
-    if (!user.emailVerified) {
-      // Redirect to auth page with verification message
-      window.location.href = '/auth?message=Please verify your email address before accessing the dashboard.';
-      return;
-    }
-
-    setVerificationChecked(true);
     setLoadingProfile(true);
 
     // Fetch admin status
@@ -203,20 +162,6 @@ export default function Dashboard() {
     );
   }
 
-  if (user && !verificationChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-          </div>
-          <p className="text-gray-600 animate-pulse">Verifying Account...</p>
-          <p className="text-gray-500 text-sm mt-2">Please wait while we verify your email address</p>
-        </div>
-      </div>
-    );
-  }
-
   if (loadingProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center">
@@ -267,147 +212,37 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
       {/* Navigation */}
       <nav className="bg-white shadow-soft border-b border-gray-100 px-6 py-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Top Row - Logo and Actions */}
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
-                <Star className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
-            </Link>
-            
-            <div className="flex items-center space-x-4">
-              {isAdmin && (
-                <Link href="/admin" className="btn-secondary">
-                  Admin Panel
-                </Link>
-              )}
-              {userProfile?.subscriptionStatus === 'active' && (
-                <button 
-                  onClick={redirectToCustomerPortal} 
-                  disabled={isManagingBilling} 
-                  className="text-sm font-medium text-gray-600 hover:text-primary-600 disabled:opacity-50 transition-colors"
-                >
-                  {isManagingBilling ? 'Loading...' : 'Manage Billing'}
-                </button>
-              )}
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
+              <Star className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {isAdmin && (
+              <Link href="/admin" className="btn-secondary">
+                Admin Panel
+              </Link>
+            )}
+            {userProfile?.subscriptionStatus === 'active' && (
               <button 
-                onClick={() => auth.signOut()} 
-                className="text-gray-600 hover:text-red-600 transition-colors flex items-center space-x-2"
+                onClick={redirectToCustomerPortal} 
+                disabled={isManagingBilling} 
+                className="text-sm font-medium text-gray-600 hover:text-primary-600 disabled:opacity-50 transition-colors"
               >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
+                {isManagingBilling ? 'Loading...' : 'Manage Billing'}
               </button>
-              
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 text-gray-600 hover:text-primary-600 transition-colors"
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-          
-          {/* Navigation Menu - Desktop */}
-          <div className="hidden lg:flex items-center space-x-8 border-t border-gray-100 pt-4">
-            <Link 
-              href="/" 
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
-            >
-              <Home className="w-4 h-4" />
-              <span>Home</span>
-            </Link>
-            
-            <Link 
-              href="/dashboard" 
-              className="flex items-center space-x-2 text-primary-600 font-medium border-b-2 border-primary-600 pb-2"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Dashboard</span>
-            </Link>
-            
+            )}
             <button 
-              onClick={() => setShowCreateForm(true)}
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
+              onClick={() => auth.signOut()} 
+              className="text-gray-600 hover:text-red-600 transition-colors flex items-center space-x-2"
             >
-              <MessageSquare className="w-4 h-4" />
-              <span>Review Requests</span>
-            </button>
-            
-            <Link 
-              href="/subscribe" 
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
-            >
-              <Target className="w-4 h-4" />
-              <span>Upgrade Plan</span>
-            </Link>
-            
-            <button 
-              onClick={() => window.open('/contact', '_blank')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Help & Support</span>
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
             </button>
           </div>
-          
-          {/* Mobile Navigation Menu */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden border-t border-gray-100 pt-4">
-              <div className="flex flex-col space-y-4">
-                <Link 
-                  href="/" 
-                  className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium py-2 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Home className="w-4 h-4" />
-                  <span>Home</span>
-                </Link>
-                
-                <Link 
-                  href="/dashboard" 
-                  className="flex items-center space-x-2 text-primary-600 font-medium py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
-                
-                <button 
-                  onClick={() => {
-                    setShowCreateForm(true);
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium py-2 transition-colors text-left"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Review Requests</span>
-                </button>
-                
-                <Link 
-                  href="/subscribe" 
-                  className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium py-2 transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Target className="w-4 h-4" />
-                  <span>Upgrade Plan</span>
-                </Link>
-                
-                <button 
-                  onClick={() => {
-                    window.open('/contact', '_blank');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium py-2 transition-colors text-left"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Help & Support</span>
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </nav>
 
@@ -420,7 +255,7 @@ export default function Dashboard() {
         >
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome, {userProfile?.businessName || user.email?.split('@')[0]}! 👋
+              Welcome back, {user.email?.split('@')[0]}! 👋
             </h1>
             <p className="text-gray-600">
               Manage your review requests and track your business reputation.

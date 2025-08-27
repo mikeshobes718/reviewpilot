@@ -9,7 +9,7 @@ export const config = {
   // Company Information
   company: {
     name: 'Reviews & Marketing',
-    supportEmail: 'mikeshobes718@gmail.com', // Changed from hello@reviewsandmarketing.com
+    supportEmail: 'support@reviewsandmarketing.com', // Using your Neo business email
     address: 'Riverfront Center, 221 River St 9th floor, Hoboken, NJ 07030',
     website: 'https://reviewsandmarketing.com',
   },

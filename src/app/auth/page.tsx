@@ -1,17 +1,22 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { auth, db } from '../../lib/firebase';
-import { EmailService } from '../../lib/email-service';
+// Dynamic imports to prevent Firebase initialization during build
+let auth: any = null;
+
+// Only import Firebase on the client side
+if (typeof window !== 'undefined') {
+  import('../../lib/firebase').then((firebase) => {
+    auth = firebase.auth;
+  });
+}
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  sendEmailVerification,
   AuthError,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
 import { 
   Star, 
   Eye, 
@@ -23,17 +28,13 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
-  ArrowLeft,
-  Users
+  ArrowLeft
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AuthPage() {
-  console.log('AuthPage component rendering...');
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [businessName, setBusinessName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -42,238 +43,52 @@ export default function AuthPage() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [passwordResetEmail, setPasswordResetEmail] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState<{score: number, feedback: string}>({score: 0, feedback: ''});
-
-  useEffect(() => {
-    // Check if Firebase auth is ready
-    if (auth) {
-      setIsFirebaseReady(true);
-    } else {
-      // Wait a bit for Firebase to initialize
-      const timer = setTimeout(() => {
-        if (auth) {
-          setIsFirebaseReady(true);
-        }
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Check for verification message in URL
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const message = urlParams.get('message');
-      if (message) {
-        setError(message);
-        // Clear the message from URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
-    console.log('=== FORM SUBMISSION HANDLER CALLED ===');
     e.preventDefault();
     
-    console.log('Form submission started');
-    console.log('isSignUp:', isSignUp);
-    console.log('agreedToTerms:', agreedToTerms);
-    console.log('password length:', password.length);
-    console.log('passwordStrength score:', passwordStrength.score);
-    console.log('Form event type:', e.type);
-    console.log('Form target:', e.target);
-    console.log('=============================');
-    
-
-    
     if (!auth) {
-      console.log('Auth not ready - setting error');
       setError('Authentication system is initializing. Please try again in a moment.');
       return;
     }
-
-    // Additional validation for signup
-    if (isSignUp) {
-      console.log('Running signup validation...');
-      if (!businessName.trim()) {
-        console.log('Business name not provided - setting error');
-        setError('Business name is required.');
-        return;
-      }
-      
-      if (!agreedToTerms) {
-        console.log('Terms not agreed to - setting error');
-        setError('You must agree to the Terms of Service and Privacy Policy to continue.');
-        console.log('Error set, returning early');
-        return;
-      }
-      
-      if (password.length < 8) {
-        console.log('Password too short - setting error');
-        setError('Password must be at least 8 characters long.');
-        return;
-      }
-      
-      if (passwordStrength.score < 3) {
-        console.log('Password too weak - setting error');
-        setError('Please choose a stronger password. Include uppercase, lowercase, numbers, and special characters.');
-        return;
-      }
-      
-      console.log('All validation passed');
-    }
     
-    console.log('Setting submitting state and clearing messages');
     setIsSubmitting(true);
     setError(null);
     setSuccessMessage(null);
 
     try {
       if (isSignUp) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        // Create user profile in Firestore
-        try {
-          await setDoc(doc(db, 'users', user.uid), {
-            businessName: businessName.trim(),
-            email: user.email,
-            createdAt: new Date(),
-            subscriptionStatus: 'free',
-            emailVerified: false
-          });
-          console.log('User profile created successfully');
-        } catch (profileError) {
-          console.error('Failed to create user profile:', profileError);
-          // Continue even if profile creation fails
-        }
-        
-        // Send verification email
-        try {
-          // Send Firebase verification email first
-          await sendEmailVerification(user);
-          
-          // Then send our beautiful verification email
-          try {
-            const userName = user.email?.split('@')[0];
-            const verificationLink = `https://reviewsandmarketing.com/auth?mode=verifyEmail&email=${encodeURIComponent(user.email || '')}`;
-            
-            await fetch('/api/send-verification-email', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                email: user.email,
-                verificationLink,
-                userName
-              }),
-            });
-          } catch (customEmailError) {
-            console.error('Failed to send custom verification email:', customEmailError);
-            // Continue with Firebase email if custom email fails
-          }
-          
-          console.log('User created successfully:', user.uid, 'Email verified:', user.emailVerified);
-          setSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
-          setIsRedirecting(false);
-          // Don't redirect - user needs to verify email first
-        } catch (emailError) {
-          console.error('Failed to send verification email:', emailError);
-          setError('Account created but verification email failed to send. Please try signing in later.');
-        }
+        await createUserWithEmailAndPassword(auth, email, password);
+        setSuccessMessage('Account created successfully! Welcome to Reviews & Marketing.');
+        setIsRedirecting(true);
+        // Redirect to dashboard after successful signup
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       } else {
-        try {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          const user = userCredential.user;
-          
-          // Check if email is verified
-          if (!user.emailVerified) {
-            setError('Please verify your email address before signing in. Check your inbox for a verification link.');
-            // Send verification email again if needed
-            try {
-              // Send Firebase verification email first
-              await sendEmailVerification(user);
-              
-              // Then send our beautiful verification email
-              try {
-                const userName = user.email?.split('@')[0];
-                const verificationLink = `https://reviewsandmarketing.com/auth?mode=verifyEmail&email=${encodeURIComponent(user.email || '')}`;
-                
-                await fetch('/api/send-verification-email', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    email: user.email,
-                    verificationLink,
-                    userName
-                  }),
-                });
-              } catch (customEmailError) {
-                console.error('Failed to send custom verification email:', customEmailError);
-                // Continue with Firebase email if custom email fails
-              }
-              
-              setError('Please verify your email address before signing in. A new verification email has been sent.');
-            } catch (emailError) {
-              console.error('Failed to send verification email:', emailError);
-            }
-            return;
-          }
-          
-          setSuccessMessage('Welcome back! Signing you in...');
-          setIsRedirecting(true);
-          // Redirect to dashboard after successful signin
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 2000);
-        } catch (signInError: any) {
-          console.error('Sign-in error details:', signInError);
-          
-          // Special handling for unverified accounts
-          if (signInError.code === 'auth/invalid-credential') {
-            // This could be an unverified account - show helpful message
-            setError('Please verify your email address before signing in. If you just created an account, check your inbox for a verification link.');
-          } else if (signInError.code === 'auth/user-not-found') {
-            setError('No account found with this email. Please sign up instead.');
-          } else if (signInError.code === 'auth/wrong-password') {
-            setError('Incorrect password. Please try again.');
-          } else if (signInError.code === 'auth/too-many-requests') {
-            setError('Too many failed attempts. Please try again later.');
-          } else if (signInError.code === 'auth/user-disabled') {
-            setError('This account has been disabled. Please contact support.');
-          } else if (signInError.code === 'auth/network-request-failed') {
-            setError('Network error. Please check your internet connection and try again.');
-          } else {
-            setError(`Sign-in error: ${signInError.message || 'Unknown error occurred'}`);
-          }
-          return;
-        }
+        await signInWithEmailAndPassword(auth, email, password);
+        setSuccessMessage('Welcome back! Signing you in...');
+        setIsRedirecting(true);
+        // Redirect to dashboard after successful signin
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       }
     } catch (authError: any) {
-      console.error('Authentication error:', authError);
       let errorMessage = 'An error occurred. Please try again.';
       
-      if (authError.code === 'auth/email-already-in-use' && isSignUp) {
-        errorMessage = 'An account with this email already exists. Please sign in instead or use a different email address.';
+      if (authError.code === 'auth/user-not-found' && !isSignUp) {
+        errorMessage = 'No account found with this email. Please sign up instead.';
+      } else if (authError.code === 'auth/email-already-in-use' && isSignUp) {
+        errorMessage = 'An account with this email already exists. Please sign in instead.';
       } else if (authError.code === 'auth/weak-password') {
         errorMessage = 'Password should be at least 6 characters long.';
       } else if (authError.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address.';
+      } else if (authError.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password. Please try again.';
       } else if (authError.code === 'auth/too-many-requests') {
         errorMessage = 'Too many failed attempts. Please try again later.';
-      } else if (authError.code === 'auth/user-disabled') {
-        errorMessage = 'This account has been disabled. Please contact support.';
-      } else if (authError.code === 'auth/network-request-failed') {
-        errorMessage = 'Network error. Please check your internet connection and try again.';
-      } else if (authError.code === 'auth/internal-error') {
-        errorMessage = 'Internal server error. Please try again in a moment.';
       }
       
       setError(errorMessage);
@@ -291,26 +106,6 @@ export default function AuthPage() {
   const clearMessages = () => {
     setError(null);
     setSuccessMessage(null);
-  };
-
-  const checkPasswordStrength = (password: string) => {
-    let score = 0;
-    let feedback = '';
-    
-    if (password.length >= 8) score += 1;
-    if (/[a-z]/.test(password)) score += 1;
-    if (/[A-Z]/.test(password)) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-    
-    if (score === 0) feedback = 'Very weak';
-    else if (score === 1) feedback = 'Weak';
-    else if (score === 2) feedback = 'Fair';
-    else if (score === 3) feedback = 'Good';
-    else if (score === 4) feedback = 'Strong';
-    else feedback = 'Very strong';
-    
-    return { score, feedback };
   };
 
   const handlePasswordReset = async (e: FormEvent) => {
@@ -331,35 +126,7 @@ export default function AuthPage() {
     setSuccessMessage(null);
 
     try {
-      // First, try to send Firebase password reset email to get the reset link
       await sendPasswordResetEmail(auth, passwordResetEmail);
-      
-      // Then send our beautiful password reset email
-      try {
-        // Get the user to extract username if available
-        const user = auth.currentUser;
-        const userName = user?.email?.split('@')[0];
-        
-        // For now, we'll use a placeholder reset link since Firebase handles the actual reset
-        // In a production app, you might want to intercept the Firebase email and replace it
-        const resetLink = `https://reviewsandmarketing.com/auth?mode=resetPassword&email=${encodeURIComponent(passwordResetEmail)}`;
-        
-        await fetch('/api/send-password-reset', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: passwordResetEmail,
-            resetLink,
-            userName
-          }),
-        });
-      } catch (customEmailError) {
-        console.error('Failed to send custom password reset email:', customEmailError);
-        // Continue with Firebase email if custom email fails
-      }
-      
       setSuccessMessage('Password reset email sent! Check your inbox for instructions.');
       setPasswordResetEmail('');
       setTimeout(() => {
@@ -383,7 +150,7 @@ export default function AuthPage() {
     }
   };
 
-  if (!isFirebaseReady) {
+  if (!auth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4">
         <div className="text-center">
@@ -397,23 +164,15 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Back to Home - Hidden on mobile to prevent duplication */}
+        {/* Back to Home */}
         <Link 
           href="/" 
-          className="hidden md:inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-8 group"
+          className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Home
-        </Link>
-        
-        {/* Mobile Back Button - Subtle and positioned better */}
-        <Link 
-          href="/" 
-          className="md:hidden absolute top-4 left-4 p-2 text-gray-500 hover:text-primary-600 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
         </Link>
 
         {/* Auth Card */}
@@ -456,55 +215,6 @@ export default function AuthPage() {
                           <p className="text-success-600 text-xs">Redirecting to dashboard...</p>
                         </div>
                       )}
-                      {!isRedirecting && isSignUp && (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <p className="text-blue-700 text-xs mb-2">
-                            📧 Check your email for a verification link. Click the link to verify your account, then come back to sign in.
-                          </p>
-                          <p className="text-blue-600 text-xs mb-2">
-                            💡 <strong>Important:</strong> After verifying your email, you'll be able to sign in successfully.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (auth?.currentUser) {
-                                try {
-                                  // Send Firebase verification email first
-                                  await sendEmailVerification(auth.currentUser);
-                                  
-                                  // Then send our beautiful verification email
-                                  try {
-                                    const userName = auth.currentUser.email?.split('@')[0];
-                                    const verificationLink = `https://reviewsandmarketing.com/auth?mode=verifyEmail&email=${encodeURIComponent(auth.currentUser.email || '')}`;
-                                    
-                                    await fetch('/api/send-verification-email', {
-                                      method: 'POST',
-                                      headers: {
-                                        'Content-Type': 'application/json',
-                                      },
-                                      body: JSON.stringify({
-                                        email: auth.currentUser.email,
-                                        verificationLink,
-                                        userName
-                                      }),
-                                    });
-                                  } catch (customEmailError) {
-                                    console.error('Failed to send custom verification email:', customEmailError);
-                                    // Continue with Firebase email if custom email fails
-                                  }
-                                  
-                                  setSuccessMessage('Verification email sent again! Check your inbox.');
-                                } catch (error) {
-                                  setError('Failed to send verification email. Please try again.');
-                                }
-                              }
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-800 underline"
-                          >
-                            Resend verification email
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -512,31 +222,7 @@ export default function AuthPage() {
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} method="POST" className="space-y-6">
-              {isSignUp && (
-                <div>
-                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Business Name *
-                  </label>
-                  <div className="relative">
-                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      id="businessName"
-                      type="text"
-                      value={businessName}
-                      onChange={(e) => {
-                        setBusinessName(e.target.value);
-                        clearMessages();
-                      }}
-                      placeholder="Your Business Name"
-                      className="input-field pl-10"
-                      required
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-              )}
-              
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address
@@ -570,17 +256,12 @@ export default function AuthPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => {
-                      const newPassword = e.target.value;
-                      setPassword(newPassword);
-                      if (isSignUp) {
-                        setPasswordStrength(checkPasswordStrength(newPassword));
-                      }
+                      setPassword(e.target.value);
                       clearMessages();
                     }}
                     placeholder="••••••••"
                     className="input-field pr-12 pl-10"
                     required
-                    minLength={8}
                     disabled={isSubmitting}
                   />
                   <button
@@ -592,36 +273,10 @@ export default function AuthPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                
-                {/* Password Strength Indicator */}
-                {isSignUp && password && (
-                  <div className="mt-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-600">Password strength:</span>
-                      <span className={`text-xs font-medium ${
-                        passwordStrength.score <= 1 ? 'text-red-600' :
-                        passwordStrength.score <= 2 ? 'text-orange-600' :
-                        passwordStrength.score <= 3 ? 'text-yellow-600' :
-                        'text-green-600'
-                      }`}>
-                        {passwordStrength.feedback}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          passwordStrength.score <= 1 ? 'bg-red-500' :
-                          passwordStrength.score <= 2 ? 'bg-orange-500' :
-                          passwordStrength.score <= 3 ? 'bg-yellow-500' :
-                          'bg-green-500'
-                        }`}
-                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Password must be at least 8 characters with uppercase, lowercase, number, and special character
-                    </p>
-                  </div>
+                {isSignUp && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Password must be at least 6 characters long
+                  </p>
                 )}
                 {!isSignUp && (
                   <div className="mt-2 text-right">
@@ -646,76 +301,17 @@ export default function AuthPage() {
                   <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                     <div className="flex items-center space-x-3">
                       <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-red-700 text-sm">{error}</p>
-                        {error.includes('already exists') && (
-                          <div className="mt-2 flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEmail('');
-                                setPassword('');
-                                setError(null);
-                              }}
-                              className="text-xs text-red-600 hover:text-red-800 underline"
-                            >
-                              Clear Form
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setError(null);
-                                setEmail('');
-                                setPassword('');
-                                // Use a more direct approach
-                                const newSignUpState = false;
-                                setIsSignUp(newSignUpState);
-                                // Also trigger a form reset
-                                const form = document.querySelector('form');
-                                if (form) form.reset();
-                              }}
-                              className="text-xs text-red-600 hover:text-red-800 underline"
-                            >
-                              Switch to Sign In
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                      <p className="text-red-700 text-sm">{error}</p>
                     </div>
                   </div>
                 </motion.div>
-              )}
-
-              {/* Terms Agreement Checkbox */}
-              {isSignUp && (
-                <div className="flex items-start space-x-3">
-                  <input
-                    id="terms"
-                    type="checkbox"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    className="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 focus:ring-offset-0"
-                    required
-                  />
-                  <label htmlFor="terms" className="text-sm text-gray-700">
-                    I agree to the{' '}
-                    <Link href="/terms" className="text-primary-600 hover:text-primary-700 underline" target="_blank">
-                      Terms of Service
-                    </Link>
-                    {' '}and{' '}
-                    <Link href="/privacy" className="text-primary-600 hover:text-primary-700 underline" target="_blank">
-                      Privacy Policy
-                    </Link>
-                    . I understand that I must verify my email address before accessing the platform.
-                  </label>
-                </div>
               )}
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary w-full group inline-flex items-center justify-center"
+                className="btn-primary w-full group"
               >
                 {isSubmitting ? (
                   <>
@@ -724,8 +320,8 @@ export default function AuthPage() {
                   </>
                 ) : (
                   <>
-                    <Star className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
                     {isSignUp ? 'Create Account' : 'Sign In'}
+                    <Star className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
                   </>
                 )}
               </button>
@@ -821,7 +417,7 @@ export default function AuthPage() {
             {/* Continue with Google */}
             <button
               type="button"
-              className="w-full btn-secondary group inline-flex items-center justify-center"
+              className="w-full btn-secondary group"
               disabled={isSubmitting}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

@@ -28,15 +28,15 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    try {
-      // For now, simulate successful submission since Postmark API might not be configured
-      // TODO: Re-enable actual API call when Postmark is properly configured
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setSubmitSuccess(true);
-      // Reset form
+    // Simulate form submission
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    setIsSubmitting(false);
+    setSubmitSuccess(true);
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setSubmitSuccess(false);
       setFormData({
         name: '',
         email: '',
@@ -44,22 +44,7 @@ export default function ContactPage() {
         message: '',
         inquiryType: 'general'
       });
-      
-      console.log('Contact form submitted:', formData);
-      
-    } catch (error) {
-      console.error('Contact form error:', error);
-      // Show error message (you can add error state if needed)
-    } finally {
-      setIsSubmitting(false);
-      
-      // Reset success message after 5 seconds
-      if (submitSuccess) {
-        setTimeout(() => {
-          setSubmitSuccess(false);
-        }, 5000);
-      }
-    }
+    }, 3000);
   };
 
   return (
@@ -298,10 +283,6 @@ export default function ContactPage() {
                 
                 <p className="text-sm text-gray-500 text-center">
                   By submitting this form, you agree to our{' '}
-                  <Link href="/terms" className="text-primary-600 hover:underline">
-                    Terms of Service
-                  </Link>
-                  {' '}and{' '}
                   <Link href="/privacy" className="text-primary-600 hover:underline">
                     Privacy Policy
                   </Link>
@@ -370,7 +351,6 @@ export default function ContactPage() {
                 <li><a href="/about" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="/contact" className="hover:text-white transition-colors">Contact</a></li>
                 <li><a href="/privacy" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="/terms" className="hover:text-white transition-colors">Terms</a></li>
               </ul>
             </div>
           </div>

@@ -217,34 +217,10 @@ export default function Dashboard() {
   }
 
   // Check if user has a valid subscription plan
+  // Show upgrade prompt only for users who need premium features
   if (!loadingProfile && userProfile && userProfile.subscriptionStatus === 'free') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center p-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <BarChart3 className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Dashboard Access Required</h1>
-          <p className="text-gray-600 mb-6">
-            You need to upgrade to a Pro plan to access the dashboard features.
-          </p>
-          <div className="space-y-3">
-            <Link 
-              href="/subscribe" 
-              className="btn-primary w-full block"
-            >
-              View Plans & Upgrade
-            </Link>
-            <Link 
-              href="/" 
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Back to Home
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    // Allow free users to access dashboard but show upgrade prompts for premium features
+    // This will be handled in the main dashboard content below
   }
 
   if (loadingProfile) {
@@ -432,8 +408,50 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Subscription Status */}
-        {userProfile?.subscriptionStatus !== 'active' && !isAdmin && (
+        {/* Free Plan Upgrade Banner */}
+        {userProfile?.subscriptionStatus === 'free' && !isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="card p-6 mb-8 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-primary-800 mb-2">
+                    🎉 Welcome to Your Free Trial!
+                  </h3>
+                  <p className="text-primary-700 mb-4">
+                    You're currently on the <strong>Starter Plan</strong> which includes up to 100 review requests per month. 
+                    Try out our basic features and upgrade to Pro when you're ready for unlimited requests and advanced analytics.
+                  </p>
+                  <div className="flex items-center space-x-4">
+                    <Link href="/subscribe" className="btn-primary">
+                      Upgrade to Pro
+                    </Link>
+                    <div className="text-sm text-primary-600">
+                      <div className="flex items-center space-x-2">
+                        <span>
+                          Current: {requests.length}/100 requests this month
+                        </span>
+                        <div className="w-24 bg-primary-200 rounded-full h-2">
+                          <div 
+                            className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min((requests.length / 100) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <span className="text-xs">Pro: Unlimited requests</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Subscription Status for non-free users */}
+        {userProfile?.subscriptionStatus && userProfile.subscriptionStatus !== 'active' && userProfile.subscriptionStatus !== 'free' && !isAdmin && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -443,14 +461,14 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-warning-800 mb-2">
-                    Upgrade to Pro Plan
+                    Subscription Issue
                   </h3>
                   <p className="text-warning-700">
-                    Your account is not currently subscribed. Subscribe to unlock unlimited review requests and advanced features.
+                    There's an issue with your subscription. Please contact support or check your billing.
                   </p>
                 </div>
                 <Link href="/subscribe" className="btn-warning">
-                  Subscribe Now
+                  Resolve Now
                 </Link>
               </div>
             </div>
@@ -458,7 +476,7 @@ export default function Dashboard() {
         )}
 
         {/* Create New Request */}
-        {(userProfile?.subscriptionStatus === 'active' || isAdmin) && (
+        {(userProfile?.subscriptionStatus === 'active' || userProfile?.subscriptionStatus === 'free' || isAdmin) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -534,7 +552,7 @@ export default function Dashboard() {
                 <p className="text-gray-600 mb-6">
                   Create your first review request to start building your business reputation.
                 </p>
-                {(userProfile?.subscriptionStatus === 'active' || isAdmin) && (
+                {(userProfile?.subscriptionStatus === 'active' || userProfile?.subscriptionStatus === 'free' || isAdmin) && (
                   <button
                     onClick={() => setShowCreateForm(true)}
                     className="btn-primary"

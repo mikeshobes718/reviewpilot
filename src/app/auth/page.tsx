@@ -122,13 +122,14 @@ export default function AuthPage() {
         } catch (signInError: any) {
           console.error('Sign-in error details:', signInError);
           
-          // Handle specific sign-in errors
-          if (signInError.code === 'auth/user-not-found') {
+          // Special handling for unverified accounts
+          if (signInError.code === 'auth/invalid-credential') {
+            // This could be an unverified account - show helpful message
+            setError('Please verify your email address before signing in. If you just created an account, check your inbox for a verification link.');
+          } else if (signInError.code === 'auth/user-not-found') {
             setError('No account found with this email. Please sign up instead.');
           } else if (signInError.code === 'auth/wrong-password') {
             setError('Incorrect password. Please try again.');
-          } else if (signInError.code === 'auth/invalid-credential') {
-            setError('Invalid email or password. Please check your credentials and try again.');
           } else if (signInError.code === 'auth/too-many-requests') {
             setError('Too many failed attempts. Please try again later.');
           } else if (signInError.code === 'auth/user-disabled') {
@@ -297,6 +298,9 @@ export default function AuthPage() {
                         <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                           <p className="text-blue-700 text-xs mb-2">
                             📧 Check your email for a verification link. Click the link to verify your account, then come back to sign in.
+                          </p>
+                          <p className="text-blue-600 text-xs mb-2">
+                            💡 <strong>Important:</strong> After verifying your email, you'll be able to sign in successfully.
                           </p>
                           <button
                             type="button"

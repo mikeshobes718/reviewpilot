@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Postmark-Server-Token': process.env.POSTMARK_API_KEY || '',
+        'X-Postmark-Server-Token': process.env.POSTMARK_API_KEY || '50e2ca3f-c387-4cd0-84a9-ff7fb7928d55',
       },
       body: JSON.stringify({
         From: process.env.POSTMARK_FROM_EMAIL || 'hello@reviewsandmarketing.com',

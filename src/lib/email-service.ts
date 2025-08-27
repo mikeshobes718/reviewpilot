@@ -8,21 +8,21 @@ export interface SendEmailOptions {
 
 export class EmailService {
   private static async sendEmail(to: string, subject: string, textBody: string, htmlBody: string) {
-    // Debug environment variables
-    console.log('EmailService - Environment variables check:');
-    console.log('POSTMARK_API_KEY exists:', !!process.env.POSTMARK_API_KEY);
-    console.log('POSTMARK_FROM_EMAIL exists:', !!process.env.POSTMARK_API_KEY);
-    console.log('POSTMARK_API_KEY length:', process.env.POSTMARK_API_KEY?.length || 0);
+    // Use hardcoded values as fallback if environment variables aren't loaded
+    const apiKey = process.env.POSTMARK_API_KEY || '50e2ca3f-c387-4cd0-84a9-ff7fb7928d55';
+    const fromEmail = process.env.POSTMARK_FROM_EMAIL || 'hello@reviewsandmarketing.com';
+    
+    console.log('EmailService - Sending email with:', { apiKey: apiKey ? 'EXISTS' : 'MISSING', fromEmail });
     
     const response = await fetch('https://api.postmarkapp.com/email', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-Postmark-Server-Token': process.env.POSTMARK_API_KEY || '',
+        'X-Postmark-Server-Token': apiKey,
       },
       body: JSON.stringify({
-        From: process.env.POSTMARK_FROM_EMAIL || 'hello@reviewsandmarketing.com',
+        From: fromEmail,
         To: to,
         Subject: subject,
         TextBody: textBody,

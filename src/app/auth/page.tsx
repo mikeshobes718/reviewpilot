@@ -1,13 +1,20 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { auth } from '../../lib/firebase';
+// Dynamic imports to prevent Firebase initialization during build
+let auth: any = null;
+
+// Only import Firebase on the client side
+if (typeof window !== 'undefined') {
+  import('../../lib/firebase').then((firebase) => {
+    auth = firebase.auth;
+  });
+}
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  sendEmailVerification,
   AuthError,
 } from 'firebase/auth';
 import { 
@@ -36,23 +43,6 @@ export default function AuthPage() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [passwordResetEmail, setPasswordResetEmail] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
-
-  useEffect(() => {
-    // Check if Firebase auth is ready
-    if (auth) {
-      setIsFirebaseReady(true);
-    } else {
-      // Wait a bit for Firebase to initialize
-      const timer = setTimeout(() => {
-        if (auth) {
-          setIsFirebaseReady(true);
-        }
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -71,32 +61,20 @@ export default function AuthPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        // Send email verification
-        await sendEmailVerification(user);
-        
         // Send welcome email
         const { EmailService } = await import('../../lib/emailService');
         const name = email.split('@')[0]; // Extract name from email
         await EmailService.sendWelcomeEmail(email, name);
         
-        setSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
-        setIsRedirecting(false);
-        
-        // Don't redirect immediately - user needs to verify email first
+        setSuccessMessage('Account created successfully! Welcome to Reviews & Marketing.');
+        setIsRedirecting(true);
+        // Redirect to dashboard after successful signup
         setTimeout(() => {
-          setIsSignUp(false);
-          setSuccessMessage(null);
-        }, 5000);
+          window.location.href = '/dashboard';
+        }, 2000);
       } else {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        
-        if (!user.emailVerified) {
-          setError('Please verify your email address before signing in. Check your inbox for a verification link.');
-          // Send verification email again if needed
-          await sendEmailVerification(user);
-          return;
-        }
         
         setSuccessMessage('Welcome back! Signing you in...');
         setIsRedirecting(true);
@@ -106,6 +84,7 @@ export default function AuthPage() {
         }, 2000);
       }
     } catch (authError: any) {
+      console.error('Authentication error:', authError);
       let errorMessage = 'An error occurred. Please try again.';
       
       if (authError.code === 'auth/user-not-found' && !isSignUp) {
@@ -120,6 +99,14 @@ export default function AuthPage() {
         errorMessage = 'Incorrect password. Please try again.';
       } else if (authError.code === 'auth/too-many-requests') {
         errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (authError.code === 'auth/user-disabled') {
+        errorMessage = 'This account has been disabled. Please contact support.';
+      } else if (authError.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else if (authError.code === 'auth/internal-error') {
+        errorMessage = 'Internal server error. Please try again in a moment.';
+      } else if (authError.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       }
       
       setError(errorMessage);
@@ -157,16 +144,7 @@ export default function AuthPage() {
     setSuccessMessage(null);
 
     try {
-      // First send Firebase password reset
       await sendPasswordResetEmail(auth, passwordResetEmail);
-      
-      // Then send our custom branded email
-      const { EmailService } = await import('../../lib/emailService');
-      const name = passwordResetEmail.split('@')[0]; // Extract name from email
-      const resetLink = `https://reviewsandmarketing.com/auth?reset=true&email=${encodeURIComponent(passwordResetEmail)}`;
-      
-      await EmailService.sendPasswordResetEmail(passwordResetEmail, resetLink, name);
-      
       setSuccessMessage('Password reset email sent! Check your inbox for instructions.');
       setPasswordResetEmail('');
       setTimeout(() => {
@@ -190,7 +168,7 @@ export default function AuthPage() {
     }
   };
 
-  if (!isFirebaseReady) {
+  if (!auth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4">
         <div className="text-center">
@@ -351,7 +329,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary w-full group inline-flex items-center justify-center"
+                className="btn-primary w-full group"
               >
                 {isSubmitting ? (
                   <>
@@ -361,7 +339,7 @@ export default function AuthPage() {
                 ) : (
                   <>
                     {isSignUp ? 'Create Account' : 'Sign In'}
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    <Star className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
                   </>
                 )}
               </button>
@@ -442,32 +420,6 @@ export default function AuthPage() {
                   {isSignUp ? 'Sign In' : 'Sign Up'}
                 </button>
               </p>
-              
-              {/* Resend Verification Email */}
-              {!isSignUp && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-500 mb-2">
-                    Didn't receive verification email?
-                  </p>
-                  <button
-                    onClick={async () => {
-                      if (auth.currentUser && !auth.currentUser.emailVerified) {
-                        try {
-                          await sendEmailVerification(auth.currentUser);
-                          setSuccessMessage('Verification email sent! Please check your inbox.');
-                          setTimeout(() => setSuccessMessage(null), 3000);
-                        } catch (error) {
-                          setError('Failed to send verification email. Please try again.');
-                        }
-                      }
-                    }}
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                    disabled={isSubmitting || !auth.currentUser || auth.currentUser?.emailVerified}
-                  >
-                    Resend Verification Email
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Divider */}
@@ -483,10 +435,10 @@ export default function AuthPage() {
             {/* Continue with Google */}
             <button
               type="button"
-              className="w-full inline-flex items-center justify-center bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl border-2 border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-soft focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="w-full btn-secondary group"
               disabled={isSubmitting}
             >
-              <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

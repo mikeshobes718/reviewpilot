@@ -28,23 +28,48 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsSubmitting(false);
-    setSubmitSuccess(true);
-    
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setSubmitSuccess(false);
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        message: '',
-        inquiryType: 'general'
+    try {
+      // Send email via Postmark API
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          message: formData.message,
+          inquiryType: formData.inquiryType
+        }),
       });
-    }, 3000);
+
+      if (response.ok) {
+        setSubmitSuccess(true);
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          message: '',
+          inquiryType: 'general'
+        });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      // Show error message (you can add error state if needed)
+    } finally {
+      setIsSubmitting(false);
+      
+      // Reset success message after 5 seconds
+      if (submitSuccess) {
+        setTimeout(() => {
+          setSubmitSuccess(false);
+        }, 5000);
+      }
+    }
   };
 
   return (

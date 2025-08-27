@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
+import { auth } from '../lib/firebase';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -190,13 +191,15 @@ export default function Home() {
                     >
                       Dashboard
                     </Link>
-                    <Link 
-                      href="/auth" 
-                      className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
-                      onClick={() => setMobileMenuOpen(false)}
+                    <button 
+                      onClick={() => {
+                        auth.signOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left text-gray-600 hover:text-red-600 transition-colors py-2"
                     >
                       Sign Out
-                    </Link>
+                    </button>
                   </>
                 ) : (
                   <>

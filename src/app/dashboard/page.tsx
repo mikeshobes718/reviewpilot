@@ -52,6 +52,7 @@ interface UserProfile {
   squareConnected?: boolean;
   email?: string;
   emailVerified?: boolean;
+  createdAt?: any; // Firestore Timestamp or Date
 }
 
 export default function Dashboard() {
@@ -422,7 +423,7 @@ export default function Dashboard() {
                     🎉 Welcome to Your Free Trial!
                   </h3>
                   <p className="text-primary-700 mb-4">
-                    You're currently on the <strong>Starter Plan</strong> which includes up to 25 review requests per month. 
+                    You're currently on the <strong>Starter Plan</strong> which includes up to 100 review requests per month. 
                     Try out our basic features and upgrade to Pro when you're ready for unlimited requests and advanced analytics.
                   </p>
                   <div className="flex items-center space-x-4">
@@ -432,12 +433,12 @@ export default function Dashboard() {
                     <div className="text-sm text-primary-600">
                       <div className="flex items-center space-x-2">
                         <span>
-                          Current: {requests.length}/25 requests this month
+                          Current: {requests.length}/100 requests this month
                         </span>
                         <div className="w-24 bg-primary-200 rounded-full h-2">
                           <div 
                             className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${Math.min((requests.length / 25) * 100, 100)}%` }}
+                            style={{ width: `${Math.min((requests.length / 100) * 100, 100)}%` }}
                           ></div>
                         </div>
                       </div>

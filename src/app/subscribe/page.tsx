@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { 
   Star, 
@@ -34,6 +35,7 @@ export default function SubscribePage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro'>('starter');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const plans: Plan[] = [
     {
@@ -137,8 +139,73 @@ export default function SubscribePage() {
               Back to Home
             </Link>
           </div>
+          
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50">
+          <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Menu</h3>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Close mobile menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <nav className="p-6 space-y-4">
+              {user ? (
+                <>
+                  <Link 
+                    href="/dashboard" 
+                    className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      auth.signOut();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-red-600 hover:text-red-700 transition-colors py-2"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  href="/auth" 
+                  className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              )}
+              <Link 
+                href="/" 
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Back to Home
+              </Link>
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="px-6 py-20 lg:py-32 lg:px-8">

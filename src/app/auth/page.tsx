@@ -95,43 +95,59 @@ export default function AuthPage() {
           setError('Account created but verification email failed to send. Please try signing in later.');
         }
       } else {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        // Check if email is verified
-        if (!user.emailVerified) {
-          setError('Please verify your email address before signing in. Check your inbox for a verification link.');
-          // Send verification email again if needed
-          try {
-            await sendEmailVerification(user);
-            setError('Please verify your email address before signing in. A new verification email has been sent.');
-          } catch (emailError) {
-            console.error('Failed to send verification email:', emailError);
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+          
+          // Check if email is verified
+          if (!user.emailVerified) {
+            setError('Please verify your email address before signing in. Check your inbox for a verification link.');
+            // Send verification email again if needed
+            try {
+              await sendEmailVerification(user);
+              setError('Please verify your email address before signing in. A new verification email has been sent.');
+            } catch (emailError) {
+              console.error('Failed to send verification email:', emailError);
+            }
+            return;
+          }
+          
+          setSuccessMessage('Welcome back! Signing you in...');
+          setIsRedirecting(true);
+          // Redirect to dashboard after successful signin
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 2000);
+        } catch (signInError: any) {
+          // Handle specific sign-in errors
+          if (signInError.code === 'auth/user-not-found') {
+            setError('No account found with this email. Please sign up instead.');
+          } else if (signInError.code === 'auth/wrong-password') {
+            setError('Incorrect password. Please try again.');
+          } else if (signInError.code === 'auth/invalid-credential') {
+            setError('Invalid email or password. Please check your credentials and try again.');
+          } else if (signInError.code === 'auth/too-many-requests') {
+            setError('Too many failed attempts. Please try again later.');
+          } else if (signInError.code === 'auth/user-disabled') {
+            setError('This account has been disabled. Please contact support.');
+          } else if (signInError.code === 'auth/network-request-failed') {
+            setError('Network error. Please check your internet connection and try again.');
+          } else {
+            setError('An error occurred during sign in. Please try again.');
           }
           return;
         }
-        
-        setSuccessMessage('Welcome back! Signing you in...');
-        setIsRedirecting(true);
-        // Redirect to dashboard after successful signin
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 2000);
       }
     } catch (authError: any) {
       console.error('Authentication error:', authError);
       let errorMessage = 'An error occurred. Please try again.';
       
-      if (authError.code === 'auth/user-not-found' && !isSignUp) {
-        errorMessage = 'No account found with this email. Please sign up instead.';
-      } else if (authError.code === 'auth/email-already-in-use' && isSignUp) {
+      if (authError.code === 'auth/email-already-in-use' && isSignUp) {
         errorMessage = 'An account with this email already exists. Please sign in instead or use a different email address.';
       } else if (authError.code === 'auth/weak-password') {
         errorMessage = 'Password should be at least 6 characters long.';
       } else if (authError.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address.';
-      } else if (authError.code === 'auth/wrong-password') {
-        errorMessage = 'Incorrect password. Please try again.';
       } else if (authError.code === 'auth/too-many-requests') {
         errorMessage = 'Too many failed attempts. Please try again later.';
       } else if (authError.code === 'auth/user-disabled') {
@@ -140,8 +156,6 @@ export default function AuthPage() {
         errorMessage = 'Network error. Please check your internet connection and try again.';
       } else if (authError.code === 'auth/internal-error') {
         errorMessage = 'Internal server error. Please try again in a moment.';
-      } else if (authError.code === 'auth/invalid-credential') {
-        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       }
       
       setError(errorMessage);

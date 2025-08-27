@@ -61,6 +61,7 @@ export default function Dashboard() {
   const [newBusinessName, setNewBusinessName] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isManagingBilling, setIsManagingBilling] = useState(false);
+  const [verificationChecked, setVerificationChecked] = useState(false);
 
   // Effect 1: Handle authentication state changes
   useEffect(() => {
@@ -106,6 +107,7 @@ export default function Dashboard() {
       return;
     }
 
+    setVerificationChecked(true);
     setLoadingProfile(true);
 
     // Fetch admin status
@@ -192,6 +194,20 @@ export default function Dashboard() {
           </div>
           <p className="text-gray-600 animate-pulse">Initializing Authentication...</p>
           <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user && !verificationChecked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p className="text-gray-600 animate-pulse">Verifying Account...</p>
+          <p className="text-gray-500 text-sm mt-2">Please wait while we verify your email address</p>
         </div>
       </div>
     );

@@ -243,36 +243,58 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
       {/* Navigation */}
       <nav className="bg-white shadow-soft border-b border-gray-100 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
-              <Star className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {isAdmin && (
-              <Link href="/admin" className="btn-secondary">
-                Admin Panel
-              </Link>
-            )}
-            {userProfile?.subscriptionStatus === 'active' && (
+        <div className="max-w-7xl mx-auto">
+          {/* Top Row - Logo and Actions */}
+          <div className="flex items-center justify-between mb-4">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
+                <Star className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
+            </Link>
+            
+            <div className="flex items-center space-x-4">
+              {isAdmin && (
+                <Link href="/admin" className="btn-secondary">
+                  Admin Panel
+                </Link>
+              )}
               <button 
-                onClick={redirectToCustomerPortal} 
-                disabled={isManagingBilling} 
-                className="text-sm font-medium text-gray-600 hover:text-primary-600 disabled:opacity-50 transition-colors"
+                onClick={() => auth.signOut()} 
+                className="text-gray-600 hover:text-red-600 transition-colors flex items-center space-x-2"
               >
-                {isManagingBilling ? 'Loading...' : 'Manage Billing'}
+                <LogOut className="w-4 h-4" />
+                <span>Sign Out</span>
               </button>
-            )}
-            <button 
-              onClick={() => auth.signOut()} 
-              className="text-gray-600 hover:text-red-600 transition-colors flex items-center space-x-2"
+            </div>
+          </div>
+
+          {/* Navigation Menu - Desktop */}
+          <div className="hidden lg:flex items-center space-x-8 border-t border-gray-100 pt-4">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
             >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
+              <span>Home</span>
+            </Link>
+            <Link
+              href="/dashboard"
+              className="flex items-center space-x-2 text-primary-600 font-medium border-b-2 border-primary-600 pb-2"
+            >
+              <span>Dashboard</span>
+            </Link>
+            <Link
+              href="/contact"
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
+            >
+              <span>Contact</span>
+            </Link>
+            <Link
+              href="/subscribe"
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
+            >
+              <span>Pricing</span>
+            </Link>
           </div>
         </div>
       </nav>
@@ -286,11 +308,46 @@ export default function Dashboard() {
         >
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user.email?.split('@')[0]}! 👋
+              Welcome back, {userProfile?.businessName || user.email?.split('@')[0]}! 👋
             </h1>
             <p className="text-gray-600">
               Manage your review requests and track your business reputation.
             </p>
+            
+            {/* Subscription Plan Display */}
+            <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Current Plan</h3>
+                  <p className="text-gray-600">
+                    {userProfile?.subscriptionStatus === 'active' ? (
+                      <span className="text-success-600 font-medium">Pro Plan - $49.99/month</span>
+                    ) : userProfile?.subscriptionStatus === 'free' ? (
+                      <span className="text-warning-600 font-medium">Starter Plan - Free</span>
+                    ) : (
+                      <span className="text-gray-600">Loading plan...</span>
+                    )}
+                  </p>
+                </div>
+                {userProfile?.subscriptionStatus === 'free' && (
+                  <Link 
+                    href="/subscribe" 
+                    className="btn-primary"
+                  >
+                    Upgrade to Pro
+                  </Link>
+                )}
+                {userProfile?.subscriptionStatus === 'active' && (
+                  <button 
+                    onClick={redirectToCustomerPortal} 
+                    disabled={isManagingBilling} 
+                    className="btn-secondary"
+                  >
+                    {isManagingBilling ? 'Loading...' : 'Manage Billing'}
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </motion.div>
 

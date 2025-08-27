@@ -14,6 +14,7 @@ import {
   deleteDoc,
   doc,
   Timestamp,
+  setDoc,
 } from 'firebase/firestore';
 import { 
   Star, 
@@ -49,6 +50,8 @@ interface UserProfile {
   stripeCustomerId?: string;
   businessName?: string;
   squareConnected?: boolean;
+  email?: string;
+  emailVerified?: boolean;
 }
 
 export default function Dashboard() {
@@ -72,6 +75,20 @@ export default function Dashboard() {
     }
 
     setLoadingProfile(true);
+    
+    // Add timeout fallback to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (loadingProfile) {
+        console.log('Profile loading timeout, setting default profile');
+        setUserProfile({
+          businessName: user.displayName || user.email?.split('@')[0] || 'User',
+          email: user.email || undefined,
+          subscriptionStatus: 'free',
+          emailVerified: user.emailVerified
+        });
+        setLoadingProfile(false);
+      }
+    }, 10000); // 10 second timeout
 
     // Fetch admin status
     user.getIdTokenResult(true).then((tokenResult) => {
@@ -81,11 +98,47 @@ export default function Dashboard() {
     // Real-time user profile listener
     const userDocRef = doc(db, 'users', user.uid);
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
+      console.log('Profile snapshot received:', docSnap.exists() ? 'exists' : 'not exists');
       if (docSnap.exists()) {
-        setUserProfile(docSnap.data() as UserProfile);
+        const profileData = docSnap.data() as UserProfile;
+        console.log('Profile data:', profileData);
+        setUserProfile(profileData);
       } else {
-        setUserProfile({});
+        console.log('No profile document found, creating default profile');
+        // Create a default profile if none exists
+        setDoc(userDocRef, {
+          businessName: user.displayName || user.email?.split('@')[0] || 'User',
+          email: user.email || undefined,
+          createdAt: new Date(),
+          subscriptionStatus: 'free',
+          emailVerified: user.emailVerified
+        }).then(() => {
+          setUserProfile({
+            businessName: user.displayName || user.email?.split('@')[0] || 'User',
+            email: user.email || undefined,
+            subscriptionStatus: 'free',
+            emailVerified: user.emailVerified
+          });
+        }).catch((error) => {
+          console.error('Error creating profile:', error);
+          setUserProfile({
+            businessName: user.displayName || user.email?.split('@')[0] || 'User',
+            email: user.email || undefined,
+            subscriptionStatus: 'free',
+            emailVerified: user.emailVerified
+          });
+        });
       }
+      setLoadingProfile(false);
+    }, (error) => {
+      console.error('Profile listener error:', error);
+      // Set default profile on error
+      setUserProfile({
+        businessName: user.displayName || user.email?.split('@')[0] || 'User',
+        email: user.email || undefined,
+        subscriptionStatus: 'free',
+        emailVerified: user.emailVerified
+      });
       setLoadingProfile(false);
     });
 
@@ -100,6 +153,7 @@ export default function Dashboard() {
     });
 
     return () => {
+      clearTimeout(timeoutId);
       unsubscribeProfile();
       unsubscribeRequests();
     };

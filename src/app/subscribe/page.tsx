@@ -235,9 +235,9 @@ export default function SubscribePage() {
                           <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Link>
                       ) : (
-                        <button
-                          onClick={handleSubscribe}
-                          disabled={loading || !user}
+          <button
+            onClick={handleSubscribe}
+            disabled={loading || !user}
                           className="btn-primary w-full group"
                         >
                           {loading ? (
@@ -448,8 +448,8 @@ export default function SubscribePage() {
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2024 Reviews & Marketing. All rights reserved.</p>
-          </div>
         </div>
+      </div>
       </footer>
     </div>
   );

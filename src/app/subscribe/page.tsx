@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
+import { auth } from '../../lib/firebase';
 
 interface Plan {
   id: string;
@@ -77,12 +78,10 @@ export default function SubscribePage() {
 
     setLoading(true);
     try {
-      const idToken = await user.getIdToken();
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           plan: selectedPlan,
@@ -117,14 +116,23 @@ export default function SubscribePage() {
             <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
           </div>
           <div className="flex items-center space-x-4">
-            {user && (
-              <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                Dashboard
+            {user ? (
+              <>
+                <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                  Dashboard
+                </Link>
+                <button 
+                  onClick={() => auth.signOut()} 
+                  className="text-gray-600 hover:text-red-600 transition-colors font-medium"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                Sign In
               </Link>
             )}
-            <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-              Sign In
-            </Link>
             <Link href="/" className="text-gray-600 hover:text-primary-600 transition-colors">
               Back to Home
             </Link>
@@ -256,7 +264,7 @@ export default function SubscribePage() {
                             </>
                           ) : (
                             <>
-                              {user ? 'Start Pro Trial' : 'Sign In to Subscribe'}
+                              {user ? 'Subscribe to Pro' : 'Sign In to Subscribe'}
                               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                             </>
                           )}

@@ -123,12 +123,12 @@ export default function SubscribePage() {
       {/* Navigation */}
       <nav className="relative z-50 px-6 py-4 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
               <Star className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
-          </div>
+          </Link>
           <div className="flex items-center space-x-4">
             <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
               Sign In

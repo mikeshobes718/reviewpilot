@@ -72,11 +72,9 @@ export default function AuthPage() {
   }, []);
 
   const handleSubmit = async (e: FormEvent) => {
+    console.log('=== FORM SUBMISSION HANDLER CALLED ===');
     e.preventDefault();
     
-    alert('Form submission handler called!'); // Simple test to see if handler is called
-    
-    console.log('=== FORM SUBMISSION DEBUG ===');
     console.log('Form submission started');
     console.log('isSignUp:', isSignUp);
     console.log('agreedToTerms:', agreedToTerms);
@@ -85,6 +83,10 @@ export default function AuthPage() {
     console.log('Form event type:', e.type);
     console.log('Form target:', e.target);
     console.log('=============================');
+    
+    // Simple test - just set an error message to see if the function works
+    setError('TEST: Form submission handler is working!');
+    return;
     
     if (!auth) {
       console.log('Auth not ready - setting error');

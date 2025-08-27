@@ -31,9 +31,15 @@ export class EmailService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Postmark API error:', errorData);
-      throw new Error(`Failed to send email via Postmark: ${response.status}`);
+      let errorMessage = `HTTP ${response.status}`;
+      try {
+        const errorData = await response.json();
+        console.error('Postmark API error:', errorData);
+        errorMessage = errorData.Message || errorData.error || errorMessage;
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+      }
+      throw new Error(`Failed to send email via Postmark: ${errorMessage}`);
     }
 
     return response.json();

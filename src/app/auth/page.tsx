@@ -87,6 +87,7 @@ export default function AuthPage() {
         // Send verification email
         try {
           await sendEmailVerification(user);
+          console.log('User created successfully:', user.uid, 'Email verified:', user.emailVerified);
           setSuccessMessage('Account created successfully! Please check your email to verify your account before signing in.');
           setIsRedirecting(false);
           // Don't redirect - user needs to verify email first
@@ -119,6 +120,8 @@ export default function AuthPage() {
             window.location.href = '/dashboard';
           }, 2000);
         } catch (signInError: any) {
+          console.error('Sign-in error details:', signInError);
+          
           // Handle specific sign-in errors
           if (signInError.code === 'auth/user-not-found') {
             setError('No account found with this email. Please sign up instead.');
@@ -133,7 +136,7 @@ export default function AuthPage() {
           } else if (signInError.code === 'auth/network-request-failed') {
             setError('Network error. Please check your internet connection and try again.');
           } else {
-            setError('An error occurred during sign in. Please try again.');
+            setError(`Sign-in error: ${signInError.message || 'Unknown error occurred'}`);
           }
           return;
         }

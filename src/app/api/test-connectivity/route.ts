@@ -5,8 +5,8 @@ export async function GET() {
     console.log('🧪 Testing internet connectivity from AWS instance...');
     
     // Test 1: Basic fetch to a public API
-    console.log('Testing fetch to httpbin.org...');
-    const response = await fetch('https://httpbin.org/get', {
+    console.log('Testing fetch to jsonplaceholder.typicode.com...');
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts/1', {
       method: 'GET',
       headers: {
         'User-Agent': 'Reviews-Marketing-App/1.0'
@@ -56,10 +56,10 @@ export async function GET() {
       });
       
     } else {
-      console.log(`❌ FAILED: httpbin.org returned ${response.status}`);
+      console.log(`❌ FAILED: jsonplaceholder.typicode.com returned ${response.status}`);
       return NextResponse.json({
         success: false,
-        message: `Cannot reach httpbin.org: ${response.status}`,
+        message: `Cannot reach jsonplaceholder.typicode.com: ${response.status}`,
         status: response.status
       }, { status: 500 });
     }

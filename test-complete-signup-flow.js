@@ -88,7 +88,12 @@ async function testCompleteSignupFlow() {
       const testPassword = 'TestPassword123!';
       
       // Fill out signup form
-      await page.click('button:has-text("Sign Up")');
+      await page.evaluate(() => {
+        const signUpButton = Array.from(document.querySelectorAll('button')).find(button => 
+          button.textContent.includes('Sign Up')
+        );
+        if (signUpButton) signUpButton.click();
+      });
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       await page.type('input[type="email"]', testEmail);

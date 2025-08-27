@@ -132,9 +132,14 @@ export default function Home() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50">
-          <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl">
+          <div className="fixed inset-y-0 right-0 w-80 bg-white shadow-xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Menu</h3>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
+                  <Star className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Menu</h3>
+              </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -146,36 +151,36 @@ export default function Home() {
             <nav className="p-6 space-y-4">
               <a 
                 href="#features" 
-                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </a>
               <a 
                 href="#pricing" 
-                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
               </a>
               <a 
                 href="#testimonials" 
-                className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Success Stories
               </a>
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-gray-200 space-y-3">
                 <Link 
                   href="/auth" 
-                  className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                  className="block text-gray-600 hover:text-primary-600 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link 
                   href="/subscribe" 
-                  className="btn-primary w-full mt-3"
+                  className="btn-primary w-full py-3 px-4 text-center"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started

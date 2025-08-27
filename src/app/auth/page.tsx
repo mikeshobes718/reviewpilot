@@ -99,7 +99,7 @@ export default function AuthPage() {
       if (authError.code === 'auth/user-not-found' && !isSignUp) {
         errorMessage = 'No account found with this email. Please sign up instead.';
       } else if (authError.code === 'auth/email-already-in-use' && isSignUp) {
-        errorMessage = 'An account with this email already exists. Please sign in instead.';
+        errorMessage = 'An account with this email already exists. Please sign in instead or use a different email address.';
       } else if (authError.code === 'auth/weak-password') {
         errorMessage = 'Password should be at least 6 characters long.';
       } else if (authError.code === 'auth/invalid-email') {
@@ -336,7 +336,34 @@ export default function AuthPage() {
                   <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                     <div className="flex items-center space-x-3">
                       <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                      <p className="text-red-700 text-sm">{error}</p>
+                      <div className="flex-1">
+                        <p className="text-red-700 text-sm">{error}</p>
+                        {error.includes('already exists') && (
+                          <div className="mt-2 flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEmail('');
+                                setPassword('');
+                                setError(null);
+                              }}
+                              className="text-xs text-red-600 hover:text-red-800 underline"
+                            >
+                              Clear Form
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsSignUp(false);
+                                setError(null);
+                              }}
+                              className="text-xs text-red-600 hover:text-red-800 underline"
+                            >
+                              Switch to Sign In
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>

@@ -191,15 +191,23 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center p-4 relative">
       <div className="w-full max-w-md">
-        {/* Back to Home */}
+        {/* Back to Home - Hidden on mobile to prevent duplication */}
         <Link 
           href="/" 
-          className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-8 group"
+          className="hidden md:inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors mb-8 group"
         >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
           Back to Home
+        </Link>
+        
+        {/* Mobile Back Button - Subtle and positioned better */}
+        <Link 
+          href="/" 
+          className="md:hidden absolute top-4 left-4 p-2 text-gray-500 hover:text-primary-600 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
         </Link>
 
         {/* Auth Card */}

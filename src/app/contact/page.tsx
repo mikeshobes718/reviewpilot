@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Mail, Phone, MapPin, Clock, MessageSquare, Send } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function ContactPage() {
+  const { user, loading } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -59,6 +61,11 @@ export default function ContactPage() {
             <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
           </Link>
           <div className="flex items-center space-x-4">
+            {!loading && user && (
+              <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                Dashboard
+              </Link>
+            )}
             <Link href="/" className="text-gray-600 hover:text-primary-600 transition-colors">
               Back to Home
             </Link>

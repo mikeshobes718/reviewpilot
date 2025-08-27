@@ -45,7 +45,7 @@ interface ReviewRequest {
 }
 
 interface UserProfile {
-  subscriptionStatus?: 'active' | 'canceled' | 'past_due';
+  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'free';
   stripeCustomerId?: string;
   businessName?: string;
   squareConnected?: boolean;
@@ -157,6 +157,37 @@ export default function Dashboard() {
           </div>
           <p className="text-gray-600 animate-pulse">Initializing Authentication...</p>
           <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has a valid subscription plan
+  if (!loadingProfile && userProfile && userProfile.subscriptionStatus === 'free') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center p-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <BarChart3 className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Dashboard Access Required</h1>
+          <p className="text-gray-600 mb-6">
+            You need to upgrade to a Pro plan to access the dashboard features.
+          </p>
+          <div className="space-y-3">
+            <Link 
+              href="/subscribe" 
+              className="btn-primary w-full block"
+            >
+              View Plans & Upgrade
+            </Link>
+            <Link 
+              href="/" 
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     );

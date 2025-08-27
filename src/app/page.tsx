@@ -16,8 +16,10 @@ import {
   X
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Home() {
+  const { user, loading } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -103,12 +105,25 @@ export default function Home() {
             <a href="#testimonials" className="text-gray-600 hover:text-primary-600 transition-colors">Success Stories</a>
           </div>
           <div className="flex items-center space-x-4">
-            <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-              Sign In
-            </Link>
-            <Link href="/subscribe" className="btn-primary">
-              Get Started
-            </Link>
+            {!loading && user ? (
+              <>
+                <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                  Dashboard
+                </Link>
+                <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                  Sign Out
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                  Sign In
+                </Link>
+                <Link href="/subscribe" className="btn-primary">
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -166,20 +181,41 @@ export default function Home() {
                 Success Stories
               </a>
               <div className="pt-4 border-t border-gray-200">
-                <Link 
-                  href="/auth" 
-                  className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link 
-                  href="/subscribe" 
-                  className="btn-primary w-full mt-3"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
+                {!loading && user ? (
+                  <>
+                    <Link 
+                      href="/dashboard" 
+                      className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link 
+                      href="/auth" 
+                      className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign Out
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      href="/auth" 
+                      className="block text-gray-600 hover:text-primary-600 transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link 
+                      href="/subscribe" 
+                      className="btn-primary w-full mt-3"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>

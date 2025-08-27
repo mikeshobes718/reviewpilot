@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { auth } from '../../lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
 import { 
   Star, 
   Check, 
@@ -19,6 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Plan {
   id: string;
@@ -31,16 +30,9 @@ interface Plan {
 }
 
 export default function SubscribePage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro'>('starter');
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const plans: Plan[] = [
     {
@@ -125,6 +117,11 @@ export default function SubscribePage() {
             <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
           </div>
           <div className="flex items-center space-x-4">
+            {user && (
+              <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                Dashboard
+              </Link>
+            )}
             <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
               Sign In
             </Link>

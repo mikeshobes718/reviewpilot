@@ -338,7 +338,7 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-primary w-full group"
+                className="btn-primary w-full group inline-flex items-center justify-center"
               >
                 {isSubmitting ? (
                   <>

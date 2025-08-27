@@ -32,7 +32,8 @@ import {
   Clock,
   CheckCircle,
   Menu,
-  X
+  X,
+  Home
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -269,12 +270,12 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto">
           {/* Top Row - Logo and Actions */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center">
                 <Star className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
-            </div>
+            </Link>
             
             <div className="flex items-center space-x-4">
               {isAdmin && (
@@ -312,6 +313,14 @@ export default function Dashboard() {
           {/* Navigation Menu - Desktop */}
           <div className="hidden lg:flex items-center space-x-8 border-t border-gray-100 pt-4">
             <Link 
+              href="/" 
+              className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Link>
+            
+            <Link 
               href="/dashboard" 
               className="flex items-center space-x-2 text-primary-600 font-medium border-b-2 border-primary-600 pb-2"
             >
@@ -348,6 +357,15 @@ export default function Dashboard() {
           {mobileMenuOpen && (
             <div className="lg:hidden border-t border-gray-100 pt-4">
               <div className="flex flex-col space-y-4">
+                <Link 
+                  href="/" 
+                  className="flex items-center space-x-2 text-gray-600 hover:text-primary-600 font-medium py-2 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Home className="w-4 h-4" />
+                  <span>Home</span>
+                </Link>
+                
                 <Link 
                   href="/dashboard" 
                   className="flex items-center space-x-2 text-primary-600 font-medium py-2"
@@ -402,7 +420,7 @@ export default function Dashboard() {
         >
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Welcome back, {user.email?.split('@')[0]}! 👋
+              Welcome, {userProfile?.businessName || user.email?.split('@')[0]}! 👋
             </h1>
             <p className="text-gray-600">
               Manage your review requests and track your business reputation.

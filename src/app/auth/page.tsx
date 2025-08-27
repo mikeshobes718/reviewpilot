@@ -2,7 +2,7 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { auth } from '../../lib/firebase';
+import { auth, db } from '../../lib/firebase';
 import { EmailService } from '../../lib/email-service';
 import {
   createUserWithEmailAndPassword,
@@ -11,6 +11,7 @@ import {
   sendEmailVerification,
   AuthError,
 } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { 
   Star, 
   Eye, 
@@ -22,7 +23,8 @@ import {
   CheckCircle,
   AlertCircle,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Users
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,6 +33,7 @@ export default function AuthPage() {
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -96,6 +99,12 @@ export default function AuthPage() {
     // Additional validation for signup
     if (isSignUp) {
       console.log('Running signup validation...');
+      if (!businessName.trim()) {
+        console.log('Business name not provided - setting error');
+        setError('Business name is required.');
+        return;
+      }
+      
       if (!agreedToTerms) {
         console.log('Terms not agreed to - setting error');
         setError('You must agree to the Terms of Service and Privacy Policy to continue.');
@@ -127,6 +136,21 @@ export default function AuthPage() {
       if (isSignUp) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        
+        // Create user profile in Firestore
+        try {
+          await setDoc(doc(db, 'users', user.uid), {
+            businessName: businessName.trim(),
+            email: user.email,
+            createdAt: new Date(),
+            subscriptionStatus: 'free',
+            emailVerified: false
+          });
+          console.log('User profile created successfully');
+        } catch (profileError) {
+          console.error('Failed to create user profile:', profileError);
+          // Continue even if profile creation fails
+        }
         
         // Send verification email
         try {
@@ -489,6 +513,30 @@ export default function AuthPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} method="POST" className="space-y-6">
+              {isSignUp && (
+                <div>
+                  <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Business Name *
+                  </label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      id="businessName"
+                      type="text"
+                      value={businessName}
+                      onChange={(e) => {
+                        setBusinessName(e.target.value);
+                        clearMessages();
+                      }}
+                      placeholder="Your Business Name"
+                      className="input-field pl-10"
+                      required
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address

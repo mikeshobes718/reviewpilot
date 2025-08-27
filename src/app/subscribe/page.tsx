@@ -70,7 +70,6 @@ export default function SubscribePage() {
         'Custom branding',
         'Advanced integrations',
         'Team collaboration',
-        'API access',
         'White-label options'
       ],
       popular: true

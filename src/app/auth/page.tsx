@@ -26,6 +26,8 @@ import {
 import Link from 'next/link';
 
 export default function AuthPage() {
+  console.log('AuthPage component rendering...');
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +73,8 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    
+    alert('Form submission handler called!'); // Simple test to see if handler is called
     
     console.log('=== FORM SUBMISSION DEBUG ===');
     console.log('Form submission started');

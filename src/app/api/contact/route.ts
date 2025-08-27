@@ -3,6 +3,12 @@ import { EmailService } from '../../../lib/email-service';
 
 export async function POST(request: NextRequest) {
   try {
+    // Debug environment variables
+    console.log('Environment variables check:');
+    console.log('POSTMARK_API_KEY exists:', !!process.env.POSTMARK_API_KEY);
+    console.log('POSTMARK_FROM_EMAIL exists:', !!process.env.POSTMARK_FROM_EMAIL);
+    console.log('POSTMARK_API_KEY length:', process.env.POSTMARK_API_KEY?.length || 0);
+    
     const { name, email, company, message, inquiryType } = await request.json();
 
     // Validate required fields

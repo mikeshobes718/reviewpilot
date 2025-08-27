@@ -72,13 +72,18 @@ export default function AuthPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
+    console.log('=== FORM SUBMISSION DEBUG ===');
     console.log('Form submission started');
     console.log('isSignUp:', isSignUp);
     console.log('agreedToTerms:', agreedToTerms);
     console.log('password length:', password.length);
     console.log('passwordStrength score:', passwordStrength.score);
+    console.log('Form event type:', e.type);
+    console.log('Form target:', e.target);
+    console.log('=============================');
     
     if (!auth) {
+      console.log('Auth not ready - setting error');
       setError('Authentication system is initializing. Please try again in a moment.');
       return;
     }
@@ -89,6 +94,7 @@ export default function AuthPage() {
       if (!agreedToTerms) {
         console.log('Terms not agreed to - setting error');
         setError('You must agree to the Terms of Service and Privacy Policy to continue.');
+        console.log('Error set, returning early');
         return;
       }
       
@@ -107,6 +113,7 @@ export default function AuthPage() {
       console.log('All validation passed');
     }
     
+    console.log('Setting submitting state and clearing messages');
     setIsSubmitting(true);
     setError(null);
     setSuccessMessage(null);

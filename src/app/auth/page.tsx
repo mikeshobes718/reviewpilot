@@ -444,7 +444,7 @@ export default function AuthPage() {
             {/* Continue with Google */}
             <button
               type="button"
-              className="w-full btn-secondary group"
+              className="w-full btn-secondary group inline-flex items-center justify-center"
               disabled={isSubmitting}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

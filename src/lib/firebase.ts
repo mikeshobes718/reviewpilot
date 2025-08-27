@@ -1,7 +1,7 @@
 // src/lib/firebase.ts
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
@@ -22,6 +22,11 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 // Export the Firebase services that your components will need
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Set authentication persistence to local storage
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.error('Auth persistence error:', error);
+});
 
 export { app, auth, db };
 

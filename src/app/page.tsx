@@ -451,7 +451,7 @@ export default function Home() {
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle className="w-3 h-3 text-success-600" />
                     </div>
-                    <span className="text-gray-700">Up to 100 review requests per month</span>
+                                            <span className="text-gray-700">Up to 25 review requests per month</span>
                   </li>
                   <li className="flex items-start space-x-3">
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">

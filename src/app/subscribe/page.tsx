@@ -43,7 +43,7 @@ export default function SubscribePage() {
       price: 'Free',
       period: '/month',
       features: [
-        'Up to 100 review requests per month',
+        'Up to 25 review requests per month',
         'Basic analytics dashboard',
         'Email support',
         'Review request templates',
@@ -63,7 +63,7 @@ export default function SubscribePage() {
         'Custom branding',
         'Advanced integrations',
         'Team collaboration',
-        'API access',
+
         'White-label options'
       ],
       popular: true
@@ -321,7 +321,7 @@ export default function SubscribePage() {
               </div>
               
               {[
-                { feature: 'Review Requests', starter: '100/month', pro: 'Unlimited' },
+                { feature: 'Review Requests', starter: '25/month', pro: 'Unlimited' },
                 { feature: 'Analytics', starter: 'Basic', pro: 'Advanced' },
                 { feature: 'Support', starter: 'Email', pro: 'Priority' },
                 { feature: 'Integrations', starter: 'Basic', pro: 'Advanced + API' },

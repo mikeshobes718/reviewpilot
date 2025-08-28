@@ -20,9 +20,18 @@ import {
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { auth } from '../../lib/firebase';
+import { PLANS, PlanId } from '../../config/plans';
+import { getFeatureBullets, getBetaFeatures } from '../../lib/feature-mapping';
+
+// Extend Window interface for gtag
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface Plan {
-  id: string;
+  id: PlanId;
   name: string;
   description: string;
   price: string;
@@ -35,42 +44,47 @@ export default function SubscribePage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro'>('starter');
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const plans: Plan[] = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      description: 'Perfect for small businesses getting started',
-      price: 'Free',
-      period: '/month',
-      features: [
-        'Up to 25 review requests per month',
-        'Basic analytics dashboard',
-        'Email support',
-        'Review request templates',
-        'Basic integrations'
-      ]
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      description: 'For growing businesses ready to scale',
-      price: '$49.99',
-      period: '/month',
-      features: [
-        'Unlimited review requests',
-        'Advanced analytics & insights',
-        'Priority support',
-        'Custom branding',
-        'Advanced integrations',
-        'Team collaboration',
+  // Generate plans from configuration
+  const plans: Plan[] = Object.entries(PLANS).map(([id, plan]) => ({
+    id: id as PlanId,
+    name: plan.label,
+    description: id === 'starter' 
+      ? 'Perfect for small businesses getting started'
+      : 'For growing businesses ready to scale reviews & retention',
+    price: plan.price === 0 ? 'Free' : `$${plan.price}`,
+    period: '/month',
+    features: getFeatureBullets(id as PlanId),
+    popular: 'mostPopular' in plan ? (plan as any).mostPopular : false
+  }));
 
-        'White-label options'
-      ],
-      popular: true
+  // Analytics event for CTA clicks
+  const trackCTAClick = (planId: PlanId) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'pricing_cta_click', {
+        plan: planId,
+        event_category: 'pricing',
+        event_label: `${planId}_cta`
+      });
     }
-  ];
+  };
+
+  // Analytics event for pricing view
+  const trackPricingView = () => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'pricing_view', {
+        event_category: 'pricing',
+        ab_variant: 'A' // Default variant, can be made dynamic later
+      });
+    }
+  };
+
+  // Track pricing view on component mount
+  useState(() => {
+    trackPricingView();
+  });
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -80,10 +94,12 @@ export default function SubscribePage() {
 
     setLoading(true);
     try {
+      const idToken = await user.getIdToken();
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           plan: selectedPlan,
@@ -117,38 +133,38 @@ export default function SubscribePage() {
             </div>
             <span className="text-xl font-bold text-gray-900">Reviews & Marketing</span>
           </div>
-          <div className="flex items-center space-x-4">
-            {user ? (
-              <>
-                <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                  Dashboard
+                      <div className="flex items-center space-x-4">
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                    Dashboard
+                  </Link>
+                  <button 
+                    onClick={() => auth.signOut()} 
+                    className="text-gray-600 hover:text-red-600 transition-colors font-medium"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
+                  Sign In
                 </Link>
-                <button 
-                  onClick={() => auth.signOut()} 
-                  className="text-gray-600 hover:text-red-600 transition-colors font-medium"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <Link href="/auth" className="text-gray-600 hover:text-primary-600 transition-colors font-medium">
-                Sign In
+              )}
+              <Link href="/" className="text-gray-600 hover:text-primary-600 transition-colors">
+                Back to Home
               </Link>
-            )}
-            <Link href="/" className="text-gray-600 hover:text-primary-600 transition-colors">
-              Back to Home
-            </Link>
-          </div>
-          
-          {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
         </div>
       </nav>
 
@@ -264,84 +280,155 @@ export default function SubscribePage() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="px-6 pb-20 lg:pb-32 lg:px-8">
+      <section className="px-6 pb-20 lg:pb-32 lg:px-8" aria-labelledby="pricing-heading">
         <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 id="pricing-heading" className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+              Simple, transparent pricing
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Start free and scale as you grow. No hidden fees, no surprises.
+            </p>
+          </div>
+
           <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {plans.map((plan, index) => (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-              >
-                <div className={`relative ${plan.popular ? 'lg:-mt-8 lg:mb-8' : ''}`}>
-                  {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center">
-                        <Crown className="w-4 h-4 mr-2" />
-                        Most Popular
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className={`card p-8 h-full transition-all duration-300 ${
-                    plan.popular ? 'ring-2 ring-primary-200' : ''
-                  } ${
-                    selectedPlan === plan.id ? 'ring-2 ring-primary-500 shadow-large scale-105' : 'hover:shadow-medium'
-                  }`}>
-                    <div className="text-center mb-8">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                      <p className="text-gray-600 mb-6">{plan.description}</p>
-                      <div className="mb-6">
-                        <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
-                        <span className="text-lg text-gray-500">{plan.period}</span>
-                      </div>
-                      {plan.id === 'starter' && (
-                        <p className="text-success-600 font-medium">30-day free trial</p>
-                      )}
-                    </div>
-
-                    <ul className="space-y-4 mb-8">
-                      {plan.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-start space-x-3">
-                          <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Check className="w-3 h-3 text-success-600" />
-                          </div>
-                          <span className="text-gray-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-auto">
-                      {plan.id === 'starter' ? (
-                        <Link href="/auth" className="btn-secondary w-full group">
-                          Get Started Free
-                          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Link>
-                      ) : (
-          <button
-            onClick={handleSubscribe}
-            disabled={loading || !user}
-                          className="btn-primary w-full group"
+            {plans.map((plan, index) => {
+              const planConfig = PLANS[plan.id];
+              const betaFeatures = getBetaFeatures(plan.id);
+              
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                >
+                  <div className={`relative ${plan.popular ? 'lg:-mt-8 lg:mb-8' : ''}`}>
+                    {plan.popular && (
+                      <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <div 
+                          className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center"
+                          aria-label="Most Popular Plan"
+                          data-testid="pro-badge-most-popular"
                         >
-                          {loading ? (
-                            <>
-                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            <>
-                              {user ? 'Subscribe to Pro' : 'Sign In to Subscribe'}
-                              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </>
-                          )}
-                        </button>
-                      )}
+                          <Crown className="w-4 h-4 mr-2" />
+                          Most Popular
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className={`card p-8 h-full transition-all duration-300 ${
+                      plan.popular ? 'ring-2 ring-primary-200' : ''
+                    } ${
+                      selectedPlan === plan.id ? 'ring-2 ring-primary-500 shadow-large scale-105' : 'hover:shadow-medium'
+                    }`}>
+                      <div className="text-center mb-8">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                        <p className="text-gray-600 mb-6">{plan.description}</p>
+                        <div className="mb-6">
+                          <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
+                          <span className="text-lg text-gray-500">{plan.period}</span>
+                        </div>
+                        {plan.id === 'starter' && (
+                          <p className="text-success-600 font-medium text-sm">Free forever. Includes a 30‑day Pro trial.</p>
+                        )}
+                        {plan.id === 'pro' && (
+                          <p className="text-success-600 font-medium text-sm">No setup fees. 30‑day free trial.</p>
+                        )}
+                      </div>
+
+                      <ul className="space-y-4 mb-8">
+                        {plan.features.map((feature, featureIndex) => {
+                          const isBetaFeature = betaFeatures.some(betaKey => 
+                            feature.includes('Extras (Beta)') || 
+                            (betaKey === 'ai_reply_assistant_beta' && feature.includes('AI reply assistant')) ||
+                            (betaKey === 'slack_teams_alerts_beta' && feature.includes('Slack/MS Teams alerts')) ||
+                            (betaKey === 'multilanguage_beta' && feature.includes('multi‑language templates')) ||
+                            (betaKey === 'testimonials_widget' && feature.includes('testimonial widget')) ||
+                            (betaKey === 'kiosk_mode_beta' && feature.includes('kiosk mode'))
+                          );
+                          
+                          return (
+                            <li 
+                              key={featureIndex} 
+                              className="flex items-start space-x-3"
+                              data-testid={`${plan.id}-bullet-${featureIndex + 1}`}
+                            >
+                              <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 flex-shrink-0">
+                                <Check className="w-3 h-3 text-success-600" />
+                              </div>
+                              <span className="text-gray-700 text-sm leading-relaxed">
+                                {feature}
+                                {isBetaFeature && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                    Beta
+                                  </span>
+                                )}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+
+                      <div className="mt-auto">
+                        {plan.id === 'starter' ? (
+                          <Link 
+                            href="/auth" 
+                            className="btn-secondary w-full group"
+                            data-testid="starter-cta"
+                            onClick={() => trackCTAClick('starter')}
+                            role="button"
+                            aria-label={`Get Started Free - ${plan.name} Plan`}
+                          >
+                            {planConfig.ctas.primary}
+                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              handleSubscribe();
+                              trackCTAClick('pro');
+                            }}
+                            disabled={loading || !user}
+                            className="btn-primary w-full group"
+                            data-testid="pro-cta"
+                            aria-label={`Start Pro Free - ${plan.name} Plan`}
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                {user ? planConfig.ctas.primary : 'Sign In to Subscribe'}
+                                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Footnotes */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-gray-500 text-center">
+              <p role="note" className="text-xs leading-relaxed">
+                Conversions measure customers who open the Google review form from your link. We never post on your behalf.
+              </p>
+              <p role="note" className="text-xs leading-relaxed">
+                We follow Google's policy (no review gating). Every customer can leave a public review or message you privately.
+              </p>
+              <p role="note" className="text-xs leading-relaxed">
+                Messaging costs (if any) are billed by your connected provider.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -387,8 +474,8 @@ export default function SubscribePage() {
                 </div>
               </div>
               
-              {[
-                { feature: 'Review Requests', starter: '25/month', pro: 'Unlimited' },
+                              {[
+                  { feature: 'Review Requests', starter: '25/month', pro: 'Unlimited' },
                 { feature: 'Analytics', starter: 'Basic', pro: 'Advanced' },
                 { feature: 'Support', starter: 'Email', pro: 'Priority' },
                 { feature: 'Integrations', starter: 'Basic', pro: 'Advanced + API' },

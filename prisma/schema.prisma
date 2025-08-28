@@ -1,0 +1,518 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core Account & User Management
+model Account {
+  id                String   @id @default(cuid())
+  name              String
+  plan              String   @default("free") // free, pro
+  stripeCustomerId  String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  users             User[]
+  businesses        Business[]
+  integrations      Integration[]
+  apiKeys           ApiKey[]
+  subscriptions     Subscription[]
+  templates         Template[]
+  abTests           ABTest[]
+  notificationChannels NotificationChannel[]
+  slaPolicies       SLAPolicy[]
+  contacts          Contact[]
+  suppressionList   SuppressionList[]
+  digestSubscriptions DigestSubscription[]
+  competitorPlaces  CompetitorPlace[]
+
+  @@map("accounts")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  accountId       String
+  email           String    @unique
+  name            String
+  emailVerifiedAt DateTime?
+  role            String    @default("staff") // owner, manager, staff
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  account         Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  notes           Note[]
+  feedbackStatus  FeedbackStatus[]
+  auditLogs       AuditLog[]
+
+  @@map("users")
+}
+
+// Business & Location Management
+model Business {
+  id          String   @id @default(cuid())
+  accountId   String
+  name        String
+  slug        String   @unique
+  placeId     String?  // Google Place ID
+  shareLink   String?  // Google Business share link
+  brandColor  String?  @default("#0ea5e9")
+  logoUrl     String?
+  timezone    String   @default("UTC")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  account         Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  integrations    Integration[]
+  reviewRequests  ReviewRequest[]
+  feedback        Feedback[]
+  events          Event[]
+  customDomains   CustomDomain[]
+  testimonials    Testimonial[]
+  competitorPlaces CompetitorPlace[]
+  locations       Location[]
+  staff           Staff[]
+
+  @@map("businesses")
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  businessId  String
+  name        String
+  timezone    String
+  externalRef String?  // POS location ID
+  createdAt   DateTime @default(now())
+
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("locations")
+}
+
+model Staff {
+  id          String   @id @default(cuid())
+  businessId  String
+  name        String
+  externalRef String?  // POS staff ID
+  createdAt   DateTime @default(now())
+
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("staff")
+}
+
+// Integrations
+model Integration {
+  id           String   @id @default(cuid())
+  businessId   String
+  type         String   // square, toast, clover, zapier
+  status       String   @default("disconnected") // connected, disconnected, error
+  connectedAt  DateTime?
+  meta         Json?    // OAuth tokens, locations, etc.
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("integrations")
+}
+
+// Review Requests & Feedback
+model ReviewRequest {
+  id            String    @id @default(cuid())
+  businessId    String
+  customerName  String?
+  email         String?
+  phone         String?
+  channel       String    // email, sms
+  source        String    // link, pos, zapier
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  openedAt      DateTime?
+  clickedGoogleAt DateTime?
+  status        String    @default("pending") // pending, sent, delivered, opened, clicked
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  reminders     Reminder[]
+  sends         Send[]
+
+  @@map("review_requests")
+}
+
+model Feedback {
+  id            String    @id @default(cuid())
+  businessId    String
+  rating        Int
+  comment       String?
+  source        String    // link, pos, zapier
+  customerName  String?
+  email         String?
+  phone         String?
+  submittedAt   DateTime  @default(now())
+  googleClicked Boolean   @default(false)
+  staffId       String?   // Optional staff attribution
+
+  // Relations
+  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  staff         Staff?    @relation(fields: [staffId], references: [id])
+  notes         Note[]
+  feedbackStatus FeedbackStatus[]
+  testimonials  Testimonial[]
+  replySuggestions ReplySuggestion[]
+
+  @@map("feedback")
+}
+
+// Notes & Status Management
+model Note {
+  id         String   @id @default(cuid())
+  feedbackId String
+  userId     String
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+model FeedbackStatus {
+  id         String   @id @default(cuid())
+  feedbackId String
+  status     String   // new, contacted, resolved
+  setBy      String
+  setAt      DateTime @default(now())
+
+  // Relations
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [setBy], references: [id], onDelete: Cascade)
+
+  @@map("feedback_status")
+}
+
+// Templates & A/B Testing
+model Template {
+  id        String   @id @default(cuid())
+  accountId String
+  channel   String   // email, sms
+  name      String
+  subject   String?  // email only
+  body      String
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  abTests   ABTest[] @relation("TemplateA")
+  abTests2  ABTest[] @relation("TemplateB")
+  sends     Send[]
+
+  @@map("templates")
+}
+
+model ABTest {
+  id                String   @id @default(cuid())
+  accountId         String
+  templateAId       String
+  templateBId       String
+  status            String   @default("active") // active, completed
+  winnerTemplateId  String?
+  startedAt         DateTime @default(now())
+  completedAt       DateTime?
+
+  account           Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  templateA         Template @relation("TemplateA", fields: [templateAId], references: [id])
+  templateB         Template @relation("TemplateB", fields: [templateBId], references: [id])
+
+  @@map("ab_tests")
+}
+
+// Reminders & Sends
+model Reminder {
+  id                String   @id @default(cuid())
+  reviewRequestId   String
+  scheduledFor      DateTime
+  sentAt            DateTime?
+  channel           String
+  status            String   @default("pending") // pending, sent, canceled
+  createdAt         DateTime @default(now())
+
+  reviewRequest     ReviewRequest @relation(fields: [reviewRequestId], references: [id], onDelete: Cascade)
+
+  @@map("reminders")
+}
+
+model Send {
+  id                String   @id @default(cuid())
+  reviewRequestId   String
+  channel           String
+  templateId        String?
+  abTestId          String?
+  sentAt            DateTime @default(now())
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  status            String   @default("pending") // sent, delivered, opened, clicked
+
+  reviewRequest     ReviewRequest @relation(fields: [reviewRequestId], references: [id], onDelete: Cascade)
+  template          Template?     @relation(fields: [templateId], references: [id])
+  abTest            ABTest?       @relation(fields: [abTestId], references: [id])
+
+  @@map("sends")
+}
+
+// SLA & Notifications
+model SLAPolicy {
+  id                String   @id @default(cuid())
+  accountId         String
+  hoursToBreach     Int      @default(24)
+  notifyChannels    Json     // Array of channel IDs
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  account           Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  escalations       Escalation[]
+
+  @@map("sla_policies")
+}
+
+model Escalation {
+  id         String   @id @default(cuid())
+  feedbackId String
+  policyId   String
+  status     String   @default("pending") // pending, sent
+  createdAt  DateTime @default(now())
+  sentAt     DateTime?
+
+  slaPolicy  SLAPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@map("escalations")
+}
+
+model NotificationChannel {
+  id       String   @id @default(cuid())
+  accountId String
+  type     String   // slack, teams, email, sms
+  config   Json     // webhook URL, API keys, etc.
+  active   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("notification_channels")
+}
+
+// Pro Features
+model CustomDomain {
+  id             String   @id @default(cuid())
+  businessId     String
+  domain         String   @unique
+  status         String   @default("pending") // pending, live, error
+  lastCheckedAt  DateTime?
+  certMeta       Json?    // SSL certificate metadata
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("custom_domains")
+}
+
+model Testimonial {
+  id         String   @id @default(cuid())
+  businessId String
+  feedbackId String
+  approved   Boolean  @default(false)
+  featured   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  feedback  Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@map("testimonials")
+}
+
+model CompetitorPlace {
+  id         String   @id @default(cuid())
+  businessId String
+  name       String
+  placeId    String
+  createdAt  DateTime @default(now())
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  snapshots  CompetitorSnapshot[]
+
+  @@map("competitor_places")
+}
+
+model CompetitorSnapshot {
+  id                String   @id @default(cuid())
+  competitorPlaceId String
+  capturedAt        DateTime @default(now())
+  rating            Decimal  @db.Decimal(3, 2)
+  reviewCount       Int
+
+  competitorPlace   CompetitorPlace @relation(fields: [competitorPlaceId], references: [id], onDelete: Cascade)
+
+  @@map("competitor_snapshots")
+}
+
+// AI & Analytics
+model ReplySuggestion {
+  id         String   @id @default(cuid())
+  feedbackId String
+  language   String
+  tone       String
+  body       String
+  createdAt  DateTime @default(now())
+  copiedAt   DateTime?
+
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@map("reply_suggestions")
+}
+
+// Contacts & Suppression
+model Contact {
+  id                String   @id @default(cuid())
+  accountId         String
+  name              String?
+  email             String?
+  phone             String?
+  language          String   @default("en")
+  consent           Boolean  @default(false)
+  lastContactedAt   DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  account           Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("contacts")
+}
+
+model SuppressionList {
+  id         String   @id @default(cuid())
+  accountId  String
+  value      String   // email, phone, or domain
+  type       String   // email, phone, domain
+  createdAt  DateTime @default(now())
+
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("suppression_list")
+}
+
+// Billing & Usage
+model Subscription {
+  id                String   @id @default(cuid())
+  accountId         String
+  plan              String
+  trialEndsAt       DateTime?
+  currentPeriodEnd  DateTime
+  usageCount        Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  account           Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model ApiKey {
+  id         String   @id @default(cuid())
+  accountId  String
+  keyHash    String   @unique
+  label      String
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  account    Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+// Events & Audit
+model Event {
+  id         String   @id @default(cuid())
+  businessId String
+  type       String
+  payload    Json
+  createdAt  DateTime @default(now())
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("events")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  objectType String
+  objectId   String
+  action     String
+  diff       Json?
+  createdAt  DateTime @default(now())
+
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
+}
+
+model DigestSubscription {
+  id       String   @id @default(cuid())
+  userId   String
+  cadence  String   @default("monthly") // weekly, monthly
+  active   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("digest_subscriptions")
+}
+
+// Indexes for performance
+model Feedback {
+  @@index([businessId, submittedAt(sort: Desc)])
+  @@index([rating])
+  @@index([googleClicked])
+}
+
+model FeedbackStatus {
+  @@index([feedbackId, setAt(sort: Desc)])
+}
+
+model ReviewRequest {
+  @@index([businessId, sentAt(sort: Desc)])
+  @@index([status])
+}
+
+model Event {
+  @@index([businessId, createdAt(sort: Desc)])
+  @@index([type])
+}
+
+model Template {
+  @@index([accountId, channel, language])
+}
+
+model CompetitorSnapshot {
+  @@index([competitorPlaceId, capturedAt(sort: Desc)])
+}

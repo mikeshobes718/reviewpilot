@@ -88,7 +88,7 @@ export default function Home() {
       rating: 5
     }
   ];
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-primary-50">
       {/* Navigation */}
@@ -122,7 +122,7 @@ export default function Home() {
                 </Link>
                 <Link href="/subscribe" className="btn-primary">
                   Get Started
-                </Link>
+              </Link>
               </>
             )}
           </div>
@@ -198,8 +198,8 @@ export default function Home() {
                       }}
                       className="block w-full text-left text-gray-600 hover:text-red-600 transition-colors py-2"
                     >
-                      Sign Out
-                    </button>
+              Sign Out
+            </button>
                   </>
                 ) : (
                   <>
@@ -286,7 +286,7 @@ export default function Home() {
               ))}
             </div>
           </motion.div>
-        </div>
+            </div>
 
                   {/* Hero Visual */}
           <motion.div
@@ -330,7 +330,7 @@ export default function Home() {
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     Your Review Dashboard
                   </h3>
-                  <div className="space-y-4">
+            <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="w-5 h-5 text-success-500" />
                       <span className="text-gray-700">Automated review requests sent</span>
@@ -704,7 +704,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
   );
 }
 

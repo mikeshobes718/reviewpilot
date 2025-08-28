@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { m } from '@/components/ui/motion';
 import { 
   Star, 
   Zap, 
@@ -228,7 +228,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative px-6 py-20 lg:py-32 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
             transition={{ duration: 0.8 }}
@@ -265,10 +265,10 @@ export default function Home() {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Hero Stats */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -285,11 +285,11 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </m.div>
             </div>
 
                   {/* Hero Visual */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.8 }}
             transition={{ duration: 1, delay: 0.4 }}
@@ -359,13 +359,13 @@ export default function Home() {
             </div>
           </div>
         </div>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* Features Section */}
       <section id="features" className="px-6 py-20 lg:py-32 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -381,11 +381,11 @@ export default function Home() {
                 review collection and build a stellar online reputation.
               </p>
             </div>
-          </motion.div>
+          </m.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <motion.div
+              <m.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -405,8 +405,23 @@ export default function Home() {
                     {feature.description}
                   </p>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
+          </div>
+          
+          {/* Footnotes */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-gray-500 text-center">
+              <p role="note" className="text-xs leading-relaxed">
+                Conversions measure customers who open the Google review form from your link. We never post on your behalf.
+              </p>
+              <p role="note" className="text-xs leading-relaxed">
+                We follow Google's policy (no review gating). Every customer can leave a public review or message you privately.
+              </p>
+              <p role="note" className="text-xs leading-relaxed">
+                Messaging costs (if any) are billed by your connected provider.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -414,7 +429,7 @@ export default function Home() {
       {/* Pricing Section */}
       <section id="pricing" className="px-6 py-20 lg:py-32 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -428,11 +443,11 @@ export default function Home() {
                 Start free and scale as you grow. No hidden fees, no surprises.
               </p>
             </div>
-          </motion.div>
+          </m.div>
 
           <div className="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Starter Plan */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
@@ -446,53 +461,71 @@ export default function Home() {
                     <span className="text-5xl font-bold text-gray-900">Free</span>
                     <span className="text-lg text-gray-500">/month</span>
                   </div>
-                  <p className="text-success-600 font-medium">30-day free trial</p>
+                  <p className="text-success-600 font-medium text-sm">Free forever. Includes a 30‑day Pro trial.</p>
                 </div>
 
                 <ul className="space-y-4 mb-8">
-                  <li className="flex items-start space-x-3">
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-1">
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle className="w-3 h-3 text-success-600" />
                     </div>
-                                         <span className="text-gray-700">Up to 25 review requests per month</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">Up to 25 review requests per month</span>
                   </li>
-                  <li className="flex items-start space-x-3">
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-2">
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle className="w-3 h-3 text-success-600" />
                     </div>
-                    <span className="text-gray-700">Basic analytics dashboard</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">Public rating link & QR code downloads (print‑ready signage)</span>
                   </li>
-                  <li className="flex items-start space-x-3">
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-3">
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle className="w-3 h-3 text-success-600" />
                     </div>
-                    <span className="text-gray-700">Email support</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">Google review link with Test Redirect (policy‑safe flow)</span>
                   </li>
-                  <li className="flex items-start space-x-3">
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-4">
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle className="w-3 h-3 text-success-600" />
                     </div>
-                    <span className="text-gray-700">Review request templates</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">Feedback Inbox with Statuses & Private Notes</span>
                   </li>
-                  <li className="flex items-start space-x-3">
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-5">
                     <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <CheckCircle className="w-3 h-3 text-success-600" />
                     </div>
-                    <span className="text-gray-700">Basic integrations</span>
+                    <span className="text-gray-700 text-sm leading-relaxed">Basic analytics: KPIs + star distribution (last 30 days)</span>
+                  </li>
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-6">
+                    <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-success-600" />
+                    </div>
+                    <span className="text-gray-700 text-sm leading-relaxed">Manual sharing (link/QR)</span>
+                  </li>
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-7">
+                    <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-success-600" />
+                    </div>
+                    <span className="text-gray-700 text-sm leading-relaxed">Basic integrations: Zapier/Make & CSV import</span>
+                  </li>
+                  <li className="flex items-start space-x-3" data-testid="starter-bullet-8">
+                    <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-3 h-3 text-success-600" />
+                    </div>
+                    <span className="text-gray-700 text-sm leading-relaxed">Email support</span>
                   </li>
                 </ul>
 
                 <div className="mt-auto">
-                  <Link href="/subscribe" className="btn-secondary w-full group">
+                  <Link href="/subscribe" className="btn-secondary w-full group" data-testid="starter-cta">
                     Get Started Free
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Pro Plan */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -500,7 +533,7 @@ export default function Home() {
             >
               <div className="relative">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center">
+                  <div className="bg-gradient-to-r from-warning-500 to-warning-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center" aria-label="Most Popular Plan" data-testid="pro-badge-most-popular">
                     <Star className="w-4 h-4 mr-2" />
                     Most Popular
                   </div>
@@ -514,69 +547,102 @@ export default function Home() {
                          <span className="text-5xl font-bold text-gray-900">$49.99</span>
                          <span className="text-lg text-gray-500">/month</span>
                        </div>
-                       <p className="text-primary-600 font-medium">No setup fees</p>
+                       <p className="text-primary-600 font-medium text-sm">No setup fees. 30‑day free trial.</p>
                   </div>
 
                   <ul className="space-y-4 mb-8">
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-1">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">Unlimited review requests</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Unlimited review requests</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-2">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">Advanced analytics & insights</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Automations: POS auto‑send (Square), send delays & 1 follow‑up reminder</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-3">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">Priority support</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Advanced analytics & insights: trends, keyword cloud, peak times</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-4">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">Custom branding</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Team collaboration (up to 5 seats)</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-5">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">Advanced integrations</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Custom branding for public page + custom domain</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-6">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">Team collaboration</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Full CSV exports (all time)</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-7">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">API access</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Advanced integrations: Square (Toast/Clover as they roll out)</span>
                     </li>
-                    <li className="flex items-start space-x-3">
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-8">
                       <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                         <CheckCircle className="w-3 h-3 text-success-600" />
                       </div>
-                      <span className="text-gray-700">White-label options</span>
+                      <span className="text-gray-700 text-sm leading-relaxed">Priority support</span>
+                    </li>
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-9">
+                      <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircle className="w-3 h-3 text-success-600" />
+                      </div>
+                      <span className="text-gray-700 text-sm leading-relaxed">API access</span>
+                    </li>
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-10">
+                      <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircle className="w-3 h-3 text-success-600" />
+                      </div>
+                      <span className="text-gray-700 text-sm leading-relaxed">Extras (Beta): AI reply assistant, Slack/MS Teams alerts, multi‑language templates, testimonial widget, kiosk mode<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">Beta</span></span>
+                    </li>
+                    <li className="flex items-start space-x-3" data-testid="pro-bullet-11">
+                      <div className="w-5 h-5 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircle className="w-3 h-3 text-success-600" />
+                      </div>
+                      <span className="text-gray-700 text-sm leading-relaxed">White‑label options (add‑on)</span>
                     </li>
                   </ul>
 
                                          <div className="mt-auto">
-                         <Link href="/subscribe" className="btn-primary w-full group">
-                           Get Started
+                         <Link href="/subscribe" className="btn-primary w-full group" data-testid="pro-cta">
+                           Start Pro Free
                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                          </Link>
                        </div>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
+          </div>
+          
+          {/* Footnotes */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-gray-500 text-center">
+              <p role="note" className="text-xs leading-relaxed">
+                Conversions measure customers who open the Google review form from your link. We never post on your behalf.
+              </p>
+              <p role="note" className="text-xs leading-relaxed">
+                We follow Google's policy (no review gating). Every customer can leave a public review or message you privately.
+              </p>
+              <p role="note" className="text-xs leading-relaxed">
+                Messaging costs (if any) are billed by your connected provider.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -584,7 +650,7 @@ export default function Home() {
       {/* Testimonials Section */}
       <section id="testimonials" className="px-6 py-20 lg:py-32 lg:px-8 bg-gradient-to-br from-gray-50 to-primary-50">
         <div className="max-w-7xl mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -599,11 +665,11 @@ export default function Home() {
                 with our platform.
               </p>
             </div>
-          </motion.div>
+          </m.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <motion.div
+              <m.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -628,7 +694,7 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -637,7 +703,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="px-6 py-20 lg:py-32 lg:px-8 bg-gradient-to-br from-primary-600 to-primary-700">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -662,7 +728,7 @@ export default function Home() {
             <p className="text-primary-200 text-sm mt-6">
               No credit card required • 30-day free trial • Cancel anytime
             </p>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 

@@ -620,7 +620,7 @@ export default function Home() {
                   </ul>
 
                                          <div className="mt-auto">
-                         <Link href="/subscribe" className="btn-primary w-full group" data-testid="pro-cta">
+                         <Link href="/subscribe?plan=pro" className="btn-primary w-full group" data-testid="pro-cta">
                            Start Pro Free
                            <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                          </Link>

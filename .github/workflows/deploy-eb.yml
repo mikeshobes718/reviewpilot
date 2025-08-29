@@ -1,0 +1,76 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
+      EB_ENV_NAME: ${{ secrets.EB_ENV_NAME }}
+      EB_BUCKET: ${{ secrets.EB_BUCKET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build Next (standalone)
+        run: npm run build
+
+      - name: Package EB bundle
+        run: |
+          rm -rf dist-eb && mkdir -p dist-eb/.next dist-eb/public
+          cp -R .next/standalone dist-eb/.next/
+          cp -R .next/static     dist-eb/.next/
+          printf 'ok\n' > dist-eb/public/_hc
+          printf 'web: node .next/standalone/server.js\n' > dist-eb/Procfile
+          (cd dist-eb && zip -qr ../standalone-eb.zip .)
+          unzip -l standalone-eb.zip | egrep '\.next/standalone/server\.js|\.next/static/css/.*\.css'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3 and create EB app version
+        id: version
+        run: |
+          LABEL="gh-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}-$(date +%Y%m%d%H%M%S)"
+          aws s3 cp standalone-eb.zip "s3://${EB_BUCKET}/${EB_APP_NAME}/${LABEL}.zip"
+          aws elasticbeanstalk create-application-version \
+            --application-name "$EB_APP_NAME" \
+            --version-label "$LABEL" \
+            --source-bundle S3Bucket="${EB_BUCKET}",S3Key="${EB_APP_NAME}/${LABEL}.zip"
+          echo "label=$LABEL" >> $GITHUB_OUTPUT
+
+      - name: Deploy to environment
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name "$EB_ENV_NAME" \
+            --version-label "${{ steps.version.outputs.label }}"
+
+      - name: Wait until updated
+        run: aws elasticbeanstalk wait environment-updated --environment-names "$EB_ENV_NAME"
+
+      - name: Show status
+        run: aws elasticbeanstalk describe-environments \
+             --application-name "$EB_APP_NAME" --environment-names "$EB_ENV_NAME" \
+             --query 'Environments[0].[Status,Health,CNAME]' --output table

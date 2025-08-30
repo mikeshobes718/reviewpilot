@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Initialize Stripe with environment variable
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-06-30.basil',
-});
+let cachedStripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!cachedStripe) {
+    const secretKey = process.env.STRIPE_SECRET_KEY as string;
+    if (!secretKey) { throw new Error("STRIPE_SECRET_KEY is not set"); }
+    cachedStripe = new Stripe(secretKey, { apiVersion: "2025-06-30.basil" });
+  }
+  return cachedStripe;
+}
 
+// Initialize Stripe with environment variable
 export async function POST(request: NextRequest) {
+  const stripe = getStripe();
   try {
     const { plan, successUrl, cancelUrl } = await request.json();
     

@@ -73,4 +73,4 @@ jobs:
       - name: Show status
         run: aws elasticbeanstalk describe-environments \
              --application-name "$EB_APP_NAME" --environment-names "$EB_ENV_NAME" \
-             --query 'Environments[0].[Status,Health,CNAME]' --output table
+             --query 'Environments[0].[Status,Health,CNAME]' --output table || true

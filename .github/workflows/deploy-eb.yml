@@ -35,10 +35,9 @@ jobs:
 
       - name: Package EB bundle
         run: |
-          rm -rf dist-eb && mkdir -p dist-eb/.next dist-eb/public
+          rm -rf dist-eb && mkdir -p dist-eb/.next
           cp -R .next/standalone dist-eb/.next/
           cp -R .next/static     dist-eb/.next/
-          printf 'ok\n' > dist-eb/public/api/healthz
           printf 'web: node .next/standalone/server.js\n' > dist-eb/Procfile
           (cd dist-eb && zip -qr ../standalone-eb.zip .)
           unzip -l standalone-eb.zip | egrep '\.next/standalone/server\.js|\.next/static/css/.*\.css'

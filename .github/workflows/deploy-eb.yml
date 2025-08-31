@@ -36,15 +36,16 @@ jobs:
       - name: Package EB bundle
         run: |
           set -e
-          rm -rf dist-eb && mkdir -p dist-eb/.next dist-eb/public
-          cp -R .next/static dist-eb/.next/
-          # Flatten standalone output so server.js is at repo root, as per Next.js guidance
-          cp -R .next/standalone/* dist-eb/
+          rm -rf dist-eb && mkdir -p dist-eb/.next dist-eb/public/_next
+          # Include Next standalone server under .next/standalone
+          cp -R .next/standalone dist-eb/.next/
+          # Serve client assets from public/_next/static via Nginx
+          cp -R .next/static dist-eb/public/_next/
           # Include public assets if present
           if [ -d public ]; then cp -R public/* dist-eb/public/; fi
-          printf 'web: node server.js\n' > dist-eb/Procfile
+          printf 'web: node .next/standalone/server.js\n' > dist-eb/Procfile
           (cd dist-eb && zip -qr ../standalone-eb.zip .)
-          unzip -l standalone-eb.zip | egrep 'server\.js|\.next/static/css/.*\.css'
+          unzip -l standalone-eb.zip | egrep '\.next/standalone/server\.js|public/_next/static/css/.*\.css'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
